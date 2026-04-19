@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: src/Colegio.Api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    volumes:
+      - ../colegio.db:/app/colegio.db
+    working_dir: /app
+
+networks:
+  default:
+    name: colegio-network
