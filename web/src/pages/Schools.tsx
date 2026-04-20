@@ -19,7 +19,17 @@ export default function Schools() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<School | null>(null)
-  const [form, setForm] = useState({ name: '', address: '', contactPhone: '', contactEmail: '' })
+  const [form, setForm] = useState({ 
+    name: '', 
+    cif: '', 
+    address: '', 
+    city: '', 
+    postalCode: '', 
+    province: '', 
+    contactPhone: '', 
+    contactEmail: '' 
+  })
+  const [selectedSchool, setSelectedSchool] = useState<School | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
@@ -53,7 +63,16 @@ export default function Schools() {
   }
 
   const resetForm = () => {
-    setForm({ name: '', address: '', contactPhone: '', contactEmail: '' })
+    setForm({ 
+      name: '', 
+      cif: '', 
+      address: '', 
+      city: '', 
+      postalCode: '', 
+      province: '', 
+      contactPhone: '', 
+      contactEmail: '' 
+    })
     setShowForm(false)
     setEditing(null)
   }
@@ -71,7 +90,16 @@ export default function Schools() {
 
   const handleEdit = (school: School) => {
     setEditing(school)
-    setForm({ name: school.name, address: school.address, contactPhone: school.contactPhone, contactEmail: school.contactEmail })
+    setForm({ 
+      name: school.name, 
+      cif: school.cif, 
+      address: school.address, 
+      city: school.city, 
+      postalCode: school.postalCode, 
+      province: school.province, 
+      contactPhone: school.contactPhone, 
+      contactEmail: school.contactEmail 
+    })
     setShowForm(true)
   }
 
@@ -136,17 +164,28 @@ export default function Schools() {
                       className="hover:bg-surface-50/50 transition-colors group"
                     >
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600 font-bold">
+                        <div 
+                          className="flex items-center gap-3 cursor-pointer group/school"
+                          onClick={() => setSelectedSchool(school)}
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600 font-bold group-hover/school:bg-brand-600 group-hover/school:text-white transition-all">
                             {school.name.charAt(0)}
                           </div>
-                          <span className="font-semibold text-surface-900">{school.name}</span>
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-surface-900 line-clamp-1">{school.name}</span>
+                            <span className="text-[10px] bg-surface-100 text-surface-500 px-1.5 py-0.5 rounded-full w-fit uppercase font-bold tracking-wider">CIF: {school.cif || 'N/A'}</span>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-surface-600">
-                        <div className="flex items-center gap-1.5">
-                          <MapPin size={14} className="text-surface-400" />
-                          {school.address || "No definida"}
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <MapPin size={14} className="text-surface-400" />
+                            {school.address || "No definida"}
+                          </div>
+                          <div className="pl-5 text-xs text-surface-400">
+                            {school.postalCode} {school.city} {school.city && school.province ? '-' : ''} {school.province}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -210,7 +249,7 @@ export default function Schools() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden"
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl relative z-10 overflow-hidden"
             >
               <div className="p-6 border-b border-surface-100 flex items-center justify-between bg-surface-50">
                 <h3 className="text-xl font-bold">{editing ? 'Editar Colegio' : 'Nuevo Colegio'}</h3>
@@ -219,27 +258,62 @@ export default function Schools() {
                 </button>
               </div>
               <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-surface-700">Nombre de la Institución</label>
-                    <input 
-                      value={form.name} 
-                      onChange={e => setForm({ ...form, name: e.target.value })} 
-                      placeholder="Ej. Colegio San José" 
-                      className="input-field w-full" 
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-surface-700">Dirección</label>
-                    <input 
-                      value={form.address} 
-                      onChange={e => setForm({ ...form, address: e.target.value })} 
-                      placeholder="Calle, Número, Ciudad" 
-                      className="input-field w-full" 
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2 space-y-1.5">
+                      <label className="text-sm font-semibold text-surface-700">Nombre de la Institución</label>
+                      <input 
+                        value={form.name} 
+                        onChange={e => setForm({ ...form, name: e.target.value })} 
+                        placeholder="Ej. Colegio San José" 
+                        className="input-field w-full" 
+                        required 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-surface-700">CIF / NIF</label>
+                      <input 
+                        value={form.cif} 
+                        onChange={e => setForm({ ...form, cif: e.target.value })} 
+                        placeholder="Q2868006E" 
+                        className="input-field w-full" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-surface-700">Dirección</label>
+                      <input 
+                        value={form.address} 
+                        onChange={e => setForm({ ...form, address: e.target.value })} 
+                        placeholder="Calle, Número..." 
+                        className="input-field w-full" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-surface-700">Ciudad</label>
+                      <input 
+                        value={form.city} 
+                        onChange={e => setForm({ ...form, city: e.target.value })} 
+                        placeholder="Ciudad" 
+                        className="input-field w-full" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-surface-700">Provincia</label>
+                      <input 
+                        value={form.province} 
+                        onChange={e => setForm({ ...form, province: e.target.value })} 
+                        placeholder="Provincia" 
+                        className="input-field w-full" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-surface-700">Código Postal</label>
+                      <input 
+                        value={form.postalCode} 
+                        onChange={e => setForm({ ...form, postalCode: e.target.value })} 
+                        placeholder="28000" 
+                        className="input-field w-full" 
+                      />
+                    </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-semibold text-surface-700">Teléfono</label>
                       <input 
@@ -249,7 +323,7 @@ export default function Schools() {
                         className="input-field w-full" 
                       />
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="md:col-span-2 space-y-1.5">
                       <label className="text-sm font-semibold text-surface-700">Email de Contacto</label>
                       <input 
                         type="email"
@@ -260,7 +334,6 @@ export default function Schools() {
                       />
                     </div>
                   </div>
-                </div>
                 <div className="flex gap-3 pt-4">
                   <button type="button" onClick={resetForm} className="btn-secondary flex-1">Cancelar</button>
                   <button type="submit" className="btn-primary flex-1">
@@ -268,6 +341,112 @@ export default function Schools() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Detailed School Profile Modal */}
+      <AnimatePresence>
+        {selectedSchool && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedSchool(null)}
+              className="absolute inset-0 bg-surface-900/60 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl relative z-10 overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-auto max-h-[90vh]"
+            >
+              {/* Left Side: Info */}
+              <div className="flex-1 p-8 overflow-y-auto space-y-8">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-brand-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-brand-200">
+                      {selectedSchool.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-black text-surface-900">{selectedSchool.name}</h2>
+                      <p className="text-surface-500 font-medium">CIF: {selectedSchool.cif}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedSchool(null)} className="p-2 hover:bg-surface-100 rounded-full transition-colors">
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-surface-400 uppercase tracking-widest">Ubicación</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <MapPin className="text-brand-500 shrink-0" size={20} />
+                        <div>
+                          <p className="text-surface-900 font-semibold">{selectedSchool.address}</p>
+                          <p className="text-surface-500 text-sm">{selectedSchool.postalCode} {selectedSchool.city}</p>
+                          <p className="text-surface-500 text-sm">{selectedSchool.province}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-surface-400 uppercase tracking-widest">Contacto</h3>
+                    <div className="space-y-3">
+                      <a href={`tel:${selectedSchool.contactPhone}`} className="flex items-center gap-3 hover:text-brand-600 transition-colors group">
+                        <div className="w-10 h-10 rounded-full bg-surface-50 flex items-center justify-center group-hover:bg-brand-50 transition-colors">
+                          <Phone size={18} className="text-surface-400 group-hover:text-brand-500" />
+                        </div>
+                        <span className="text-surface-700 font-medium">{selectedSchool.contactPhone}</span>
+                      </a>
+                      <a href={`mailto:${selectedSchool.contactEmail}`} className="flex items-center gap-3 hover:text-brand-600 transition-colors group">
+                        <div className="w-10 h-10 rounded-full bg-surface-50 flex items-center justify-center group-hover:bg-brand-50 transition-colors">
+                          <Mail size={18} className="text-surface-400 group-hover:text-brand-500" />
+                        </div>
+                        <span className="text-surface-700 font-medium">{selectedSchool.contactEmail}</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex gap-4">
+                  <button 
+                    onClick={() => { handleEdit(selectedSchool); setSelectedSchool(null); }}
+                    className="btn-secondary flex-1 flex items-center justify-center gap-2"
+                  >
+                    <Edit2 size={18} />
+                    Editar Datos
+                  </button>
+                  <a 
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${selectedSchool.name} ${selectedSchool.address} ${selectedSchool.city}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary flex-1 flex items-center justify-center gap-2"
+                  >
+                    <MapPin size={18} />
+                    Ver en Maps
+                  </a>
+                </div>
+              </div>
+
+              {/* Right Side: Google Maps Embed */}
+              <div className="w-full md:w-1/2 bg-surface-100 min-h-[300px] md:min-h-full relative overflow-hidden">
+                <iframe 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  loading="lazy" 
+                  allowFullScreen 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="absolute inset-0"
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(`${selectedSchool.address}, ${selectedSchool.city}, ${selectedSchool.province}`)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                ></iframe>
+              </div>
             </motion.div>
           </div>
         )}

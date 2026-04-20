@@ -27,9 +27,20 @@ public static class SchoolsEndpoints
         return school is null ? Results.NotFound() : Results.Ok(school);
     }
 
-    private static async Task<IResult> CreateSchool(ColegioDbContext db, School school)
+    private static async Task<IResult> CreateSchool(ColegioDbContext db, School input)
     {
-        school.Id = Guid.NewGuid();
+        var school = new School
+        {
+            Id = Guid.NewGuid(),
+            Name = input.Name,
+            CIF = input.CIF,
+            Address = input.Address,
+            City = input.City,
+            PostalCode = input.PostalCode,
+            Province = input.Province,
+            ContactPhone = input.ContactPhone,
+            ContactEmail = input.ContactEmail
+        };
         db.Schools.Add(school);
         await db.SaveChangesAsync();
         return Results.Created($"/api/schools/{school.Id}", school);
@@ -41,7 +52,11 @@ public static class SchoolsEndpoints
         if (school is null) return Results.NotFound();
 
         school.Name = updated.Name;
+        school.CIF = updated.CIF;
         school.Address = updated.Address;
+        school.City = updated.City;
+        school.PostalCode = updated.PostalCode;
+        school.Province = updated.Province;
         school.ContactPhone = updated.ContactPhone;
         school.ContactEmail = updated.ContactEmail;
 

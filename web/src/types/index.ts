@@ -1,7 +1,11 @@
 export interface School {
   id: string
   name: string
+  cif: string
   address: string
+  city: string
+  postalCode: string
+  province: string
   contactPhone: string
   contactEmail: string
 }

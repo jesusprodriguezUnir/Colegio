@@ -33,7 +33,11 @@ public static class SeedData
         {
             Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
             Name = "Colegio Público Virgen del Carmen",
-            Address = "Calle Mayor 123, Madrid",
+            CIF = "Q2868006E",
+            Address = "Calle Mayor 123",
+            City = "Madrid",
+            PostalCode = "28013",
+            Province = "Madrid",
             ContactPhone = "912345678",
             ContactEmail = "colegio@virgendelcarmen.es"
         };
