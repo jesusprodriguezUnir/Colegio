@@ -45,3 +45,8 @@ export const invoicesApi = {
   update: (id: string, data: any) => api.put(`/invoices/${id}`, data),
   delete: (id: string) => api.delete(`/invoices/${id}`),
 }
+export const maintenanceApi = {
+  getStats: () => api.get('/maintenance/stats'),
+  reset: () => api.post('/maintenance/reset'),
+  clear: () => api.delete('/maintenance/clear'),
+}

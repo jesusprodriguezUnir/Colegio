@@ -40,6 +40,7 @@ app.MapStudentsEndpoints();
 app.MapParentsEndpoints();
 app.MapInvoicesEndpoints();
 app.MapSchedulesEndpoints();
+app.MapMaintenanceEndpoints();
 
 app.Run();
 

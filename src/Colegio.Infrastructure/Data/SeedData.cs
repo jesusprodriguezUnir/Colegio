@@ -4,9 +4,14 @@ namespace Colegio.Infrastructure.Data;
 
 public static class SeedData
 {
-    public static async Task SeedAsync(ColegioDbContext context)
+    public static async Task SeedAsync(ColegioDbContext context, bool force = false)
     {
-        if (context.Schools.Any()) return;
+        if (!force && context.Schools.Any()) return;
+
+        if (force)
+        {
+            await ClearAllDataAsync(context);
+        }
 
         var school = new School
         {
@@ -104,6 +109,43 @@ public static class SeedData
         };
         context.Invoices.AddRange(invoices);
 
+        var schedules = new List<Schedule>
+        {
+            new() { Id = Guid.NewGuid(), ClassroomId = classrooms[6].Id, TeacherId = teachers[1].Id, Subject = "Matemáticas", DayOfWeek = Domain.Entities.DayOfWeek.Monday, StartTime = new TimeSpan(9, 0, 0), EndTime = new TimeSpan(10, 0, 0) },
+            new() { Id = Guid.NewGuid(), ClassroomId = classrooms[6].Id, TeacherId = teachers[2].Id, Subject = "Lengua", DayOfWeek = Domain.Entities.DayOfWeek.Monday, StartTime = new TimeSpan(10, 0, 0), EndTime = new TimeSpan(11, 0, 0) },
+            new() { Id = Guid.NewGuid(), ClassroomId = classrooms[7].Id, TeacherId = teachers[3].Id, Subject = "Ciencias", DayOfWeek = Domain.Entities.DayOfWeek.Tuesday, StartTime = new TimeSpan(11, 30, 0), EndTime = new TimeSpan(12, 30, 0) }
+        };
+        context.Schedules.AddRange(schedules);
+
         await context.SaveChangesAsync();
+    }
+
+    public static async Task ClearAllDataAsync(ColegioDbContext context)
+    {
+        // El orden es importante para evitar violaciones de FK
+        context.Invoices.RemoveRange(context.Invoices);
+        context.StudentParents.RemoveRange(context.StudentParents);
+        context.Schedules.RemoveRange(context.Schedules);
+        context.Students.RemoveRange(context.Students);
+        context.Classrooms.RemoveRange(context.Classrooms);
+        context.Teachers.RemoveRange(context.Teachers);
+        context.Parents.RemoveRange(context.Parents);
+        context.Schools.RemoveRange(context.Schools);
+
+        await context.SaveChangesAsync();
+    }
+
+    public static async Task<object> GetDatabaseStatsAsync(ColegioDbContext context)
+    {
+        return new
+        {
+            Schools = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Schools),
+            Teachers = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Teachers),
+            Classrooms = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Classrooms),
+            Students = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Students),
+            Parents = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Parents),
+            Schedules = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Schedules),
+            Invoices = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Invoices)
+        };
     }
 }

@@ -8,7 +8,8 @@ import {
   Receipt,
   Settings,
   Menu,
-  ChevronLeft
+  ChevronLeft,
+  ShieldCheck
 } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -20,6 +21,7 @@ const menuItems = [
   { path: '/students', icon: Users, label: 'Alumnos' },
   { path: '/classrooms', icon: DoorOpen, label: 'Aulas' },
   { path: '/invoices', icon: Receipt, label: 'Facturas' },
+  { path: '/administration', icon: ShieldCheck, label: 'Administración' },
 ]
 
 export default function Sidebar() {

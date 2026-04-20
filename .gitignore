@@ -1,0 +1,39 @@
+# .NET 
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+out/
+.vscode/
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Node / Vite
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# User-specific files
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+api.log
+api.err
+*.log
+
+# Binaries & Documents
+*.dll
+*.exe
+*.pdb
+*.pdf
