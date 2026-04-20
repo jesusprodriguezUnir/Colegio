@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Colegio.Domain.Entities;
 
 public class Student
@@ -8,6 +10,7 @@ public class Student
     public DateTime DateOfBirth { get; set; }
     public Guid ClassroomId { get; set; }
 
+    [JsonIgnore]
     public Classroom Classroom { get; set; } = null!;
 
     public ICollection<StudentParent> StudentParents { get; set; } = new List<StudentParent>();

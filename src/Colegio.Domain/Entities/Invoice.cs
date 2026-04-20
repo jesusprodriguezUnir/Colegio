@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Colegio.Domain.Entities;
 
 public enum InvoiceStatus
@@ -24,6 +26,8 @@ public class Invoice
     public InvoiceStatus Status { get; set; }
     public InvoiceConcept Concept { get; set; }
 
+    [JsonIgnore]
     public Parent Parent { get; set; } = null!;
+    [JsonIgnore]
     public Student Student { get; set; } = null!;
 }

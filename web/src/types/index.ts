@@ -40,6 +40,8 @@ export interface Classroom {
   line: string
   schoolId: string
   tutorId?: string
+  tutor?: Teacher
+  students?: Student[]
 }
 
 export interface Invoice {

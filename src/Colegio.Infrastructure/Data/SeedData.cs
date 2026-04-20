@@ -120,19 +120,41 @@ public static class SeedData
 
     private static List<Student> SeedStudents(ColegioDbContext context, List<Classroom> classrooms)
     {
-        var students = new List<Student>
+        var firstNames = new[] { "Alejandro", "María", "Lucas", "Sofia", "Mateo", "Valentina", "Diego", "Emma", "Daniel", "Lucía", "Hugo", "Martina", "Leo", "Paula", "Martín", "Julia", "Adrian", "Alba", "Pablo", "Elena", "Álvaro", "Sara", "Oliver", "Noa", "Thiago", "Carla", "Marc", "Irene", "Bruno", "Lola" };
+        var lastNames = new[] { "García", "Rodríguez", "Martínez", "López", "González", "Pérez", "Sánchez", "Gómez", "Jiménez", "Díaz", "Ruiz", "Torres", "Vázquez", "Castro", "Romero", "Navarro", "Serrano", "Morales", "Ortega", "Delgado" };
+        
+        var students = new List<Student>();
+        var random = new Random(42);
+
+        foreach (var classroom in classrooms)
         {
-            new() { Id = Guid.Parse("55555555-5555-5555-5555-555555551111"), FirstName = "Alejandro", LastName = "Fernández García", DateOfBirth = new DateTime(2021, 3, 15), ClassroomId = classrooms[0].Id },
-            new() { Id = Guid.Parse("55555555-5555-5555-5555-555555551112"), FirstName = "María", LastName = "Fernández Díaz", DateOfBirth = new DateTime(2021, 5, 20), ClassroomId = classrooms[1].Id },
-            new() { Id = Guid.Parse("55555555-5555-5555-5555-555555551113"), FirstName = "Lucas", LastName = "Díaz Martínez", DateOfBirth = new DateTime(2020, 2, 10), ClassroomId = classrooms[2].Id },
-            new() { Id = Guid.Parse("55555555-5555-5555-5555-555555551114"), FirstName = "Sofia", LastName = "Gómez Sánchez", DateOfBirth = new DateTime(2020, 7, 8), ClassroomId = classrooms[3].Id },
-            new() { Id = Guid.Parse("55555555-5555-5555-5555-555555551115"), FirstName = "Mateo", LastName = "Ruiz Torres", DateOfBirth = new DateTime(2019, 11, 25), ClassroomId = classrooms[6].Id },
-            new() { Id = Guid.Parse("55555555-5555-5555-5555-555555551116"), FirstName = "Valentina", LastName = "Martín López", DateOfBirth = new DateTime(2019, 4, 3), ClassroomId = classrooms[7].Id },
-            new() { Id = Guid.Parse("55555555-5555-5555-5555-555555551117"), FirstName = "Diego", LastName = "Castro Fernández", DateOfBirth = new DateTime(2018, 9, 12), ClassroomId = classrooms[12].Id },
-            new() { Id = Guid.Parse("55555555-5555-5555-5555-555555551118"), FirstName = "Emma", LastName = "Sánchez Gómez", DateOfBirth = new DateTime(2018, 1, 30), ClassroomId = classrooms[13].Id }
-        };
+            for (int i = 0; i < 20; i++)
+            {
+                var firstName = firstNames[random.Next(firstNames.Length)];
+                var lastName1 = lastNames[random.Next(lastNames.Length)];
+                var lastName2 = lastNames[random.Next(lastNames.Length)];
+                
+                students.Add(new Student
+                {
+                    Id = Guid.NewGuid(),
+                    FirstName = firstName,
+                    LastName = $"{lastName1} {lastName2}",
+                    DateOfBirth = GetRandomBirthDate(classroom.GradeLevel, random),
+                    ClassroomId = classroom.Id
+                });
+            }
+        }
+        
         context.Students.AddRange(students);
         return students;
+    }
+
+    private static DateTime GetRandomBirthDate(GradeLevel grade, Random random)
+    {
+        // 2026 is current year
+        int baseAge = (int)grade + 2; 
+        int birthYear = 2026 - baseAge;
+        return new DateTime(birthYear, random.Next(1, 13), random.Next(1, 28));
     }
 
     private static void SeedRelationships(ColegioDbContext context, List<Student> students, List<Parent> parents)

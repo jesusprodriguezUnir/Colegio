@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Colegio.Domain.Entities;
 
 public enum DayOfWeek
@@ -19,6 +21,8 @@ public class Schedule
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
 
+    [JsonIgnore]
     public Classroom Classroom { get; set; } = null!;
+    [JsonIgnore]
     public Teacher Teacher { get; set; } = null!;
 }

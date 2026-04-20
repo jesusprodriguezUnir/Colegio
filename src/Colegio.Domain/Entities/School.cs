@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Colegio.Domain.Entities;
 
 public class School
@@ -12,5 +14,6 @@ public class School
     public string ContactPhone { get; set; } = string.Empty;
     public string ContactEmail { get; set; } = string.Empty;
 
+    [JsonIgnore]
     public ICollection<Classroom> Classrooms { get; set; } = new List<Classroom>();
 }

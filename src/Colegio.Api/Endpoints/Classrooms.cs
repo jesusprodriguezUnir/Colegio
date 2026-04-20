@@ -20,6 +20,7 @@ public static class ClassroomsEndpoints
         var classrooms = await db.Classrooms
             .AsNoTracking()
             .Include(c => c.Tutor)
+            .Include(c => c.Students)
             .ToListAsync();
         return Results.Ok(classrooms);
     }
@@ -29,6 +30,7 @@ public static class ClassroomsEndpoints
         var classroom = await db.Classrooms
             .AsNoTracking()
             .Include(c => c.Tutor)
+            .Include(c => c.Students)
             .FirstOrDefaultAsync(c => c.Id == id);
         return classroom is null ? Results.NotFound() : Results.Ok(classroom);
     }

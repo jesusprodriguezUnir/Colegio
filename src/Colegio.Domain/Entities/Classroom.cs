@@ -2,15 +2,15 @@ namespace Colegio.Domain.Entities;
 
 public enum GradeLevel
 {
-    Infantile3 = 3,
-    Infantile4 = 4,
-    Infantile5 = 5,
-    Primary1 = 1,
-    Primary2 = 2,
-    Primary3 = 3,
-    Primary4 = 4,
-    Primary5 = 5,
-    Primary6 = 6
+    Infantile3 = 1,
+    Infantile4 = 2,
+    Infantile5 = 3,
+    Primary1 = 4,
+    Primary2 = 5,
+    Primary3 = 6,
+    Primary4 = 7,
+    Primary5 = 8,
+    Primary6 = 9
 }
 
 public enum ClassroomLine

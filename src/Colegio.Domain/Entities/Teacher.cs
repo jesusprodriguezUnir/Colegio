@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Colegio.Domain.Entities;
 
 public class Teacher
@@ -12,6 +14,7 @@ public class Teacher
     public DateTime DateOfBirth { get; set; }
     public DateTime HireDate { get; set; }
 
+    [JsonIgnore]
     public ICollection<Classroom> TutoredClassrooms { get; set; } = new List<Classroom>();
     public ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 }
