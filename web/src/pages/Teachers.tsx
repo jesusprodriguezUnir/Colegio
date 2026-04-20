@@ -9,7 +9,13 @@ import {
   Calendar,
   X,
   UserSquare2,
-  MoreVertical
+  Phone,
+  Mail,
+  CreditCard,
+  User,
+  GraduationCap,
+  ChevronRight,
+  Cake
 } from 'lucide-react'
 import { teachersApi } from '../services/api'
 import type { Teacher } from '../types'
@@ -18,8 +24,18 @@ export default function Teachers() {
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
   const [editing, setEditing] = useState<Teacher | null>(null)
-  const [form, setForm] = useState({ firstName: '', lastName: '', specialty: '', hireDate: '' })
+  const [form, setForm] = useState({ 
+    firstName: '', 
+    lastName: '', 
+    specialty: '', 
+    email: '', 
+    phone: '', 
+    iban: '', 
+    dateOfBirth: '', 
+    hireDate: '' 
+  })
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
@@ -27,6 +43,7 @@ export default function Teachers() {
   }, [])
 
   const loadTeachers = async () => {
+    setLoading(true)
     try {
       const res = await teachersApi.getAll()
       setTeachers(res.data)
@@ -53,7 +70,16 @@ export default function Teachers() {
   }
 
   const resetForm = () => {
-    setForm({ firstName: '', lastName: '', specialty: '', hireDate: '' })
+    setForm({ 
+      firstName: '', 
+      lastName: '', 
+      specialty: '', 
+      email: '', 
+      phone: '', 
+      iban: '', 
+      dateOfBirth: '', 
+      hireDate: '' 
+    })
     setShowForm(false)
     setEditing(null)
   }
@@ -63,6 +89,7 @@ export default function Teachers() {
       try {
         await teachersApi.delete(id)
         loadTeachers()
+        if (selectedTeacher?.id === id) setSelectedTeacher(null)
       } catch (e) {
         console.error(e)
       }
@@ -71,13 +98,28 @@ export default function Teachers() {
 
   const handleEdit = (teacher: Teacher) => {
     setEditing(teacher)
-    setForm({ firstName: teacher.firstName, lastName: teacher.lastName, specialty: teacher.specialty, hireDate: teacher.hireDate })
+    setForm({ 
+      firstName: teacher.firstName, 
+      lastName: teacher.lastName, 
+      specialty: teacher.specialty,
+      email: teacher.email,
+      phone: teacher.phone,
+      iban: teacher.iban,
+      dateOfBirth: teacher.dateOfBirth.split('T')[0],
+      hireDate: teacher.hireDate.split('T')[0] 
+    })
     setShowForm(true)
   }
 
+  const formatGrade = (grade: number) => {
+    if (grade >= 3 && grade <= 5) return `${grade} Años`;
+    return `${grade}º Prim.`;
+  };
+
   const filteredTeachers = teachers.filter(t => 
     (t.firstName + ' ' + t.lastName).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+    t.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
@@ -86,12 +128,13 @@ export default function Teachers() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
+      {/* Header Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="relative w-full sm:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" size={18} />
           <input 
             type="text" 
-            placeholder="Buscar por nombre o especialidad..." 
+            placeholder="Buscar por nombre, email o especialidad..." 
             className="input-field w-full pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -106,87 +149,181 @@ export default function Teachers() {
         </button>
       </div>
 
-      <div className="glass-card overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center">
-            <div className="animate-spin w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-surface-500 font-medium">Cargando profesores...</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-surface-50 border-b border-surface-200">
-                  <th className="px-6 py-4 text-xs font-bold text-surface-500 uppercase tracking-wider">Docente</th>
-                  <th className="px-6 py-4 text-xs font-bold text-surface-500 uppercase tracking-wider">Especialidad</th>
-                  <th className="px-6 py-4 text-xs font-bold text-surface-500 uppercase tracking-wider">Contratación</th>
-                  <th className="px-6 py-4 text-xs font-bold text-surface-500 uppercase tracking-wider text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-surface-100">
-                <AnimatePresence>
-                  {filteredTeachers.map((teacher) => (
-                    <motion.tr 
-                      key={teacher.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="hover:bg-surface-50/50 transition-colors group"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold overflow-hidden">
-                            <img src={`https://ui-avatars.com/api/?name=${teacher.firstName}+${teacher.lastName}&background=6366f1&color=fff`} alt="" />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-surface-900">{teacher.firstName} {teacher.lastName}</span>
-                            <span className="text-xs text-surface-400">ID: {teacher.id.split('-')[0]}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                          <BookOpen size={12} />
-                          {teacher.specialty}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-surface-600">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar size={14} className="text-surface-400" />
-                          {new Date(teacher.hireDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => handleEdit(teacher)}
-                            className="p-2 hover:bg-brand-50 text-brand-600 rounded-lg transition-colors"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(teacher.id)}
-                            className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-                {!loading && filteredTeachers.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-surface-400">
-                      No se encontraron profesores.
-                    </td>
+      {/* Main Content: Table and Detail Panel */}
+      <div className="flex gap-6 items-start">
+        <div className={`glass-card overflow-hidden transition-all duration-300 ${selectedTeacher ? 'flex-[2]' : 'w-full'}`}>
+          {loading ? (
+            <div className="p-12 text-center">
+              <div className="animate-spin w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-surface-500 font-medium">Cargando claustro...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-50 border-b border-surface-200">
+                    <th className="px-6 py-4 text-xs font-bold text-surface-500 uppercase tracking-wider">Docente</th>
+                    <th className="px-6 py-4 text-xs font-bold text-surface-500 uppercase tracking-wider">Especialidad</th>
+                    <th className="px-6 py-4 text-xs font-bold text-surface-500 uppercase tracking-wider">Tutoría</th>
+                    <th className="px-6 py-4 text-xs font-bold text-surface-500 uppercase tracking-wider text-right">Acciones</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-surface-100">
+                  <AnimatePresence>
+                    {filteredTeachers.map((teacher) => (
+                      <motion.tr 
+                        key={teacher.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        onClick={() => setSelectedTeacher(teacher)}
+                        className={`cursor-pointer transition-colors group ${selectedTeacher?.id === teacher.id ? 'bg-brand-50/50' : 'hover:bg-surface-50/50'}`}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold overflow-hidden border border-indigo-100">
+                              <img src={`https://ui-avatars.com/api/?name=${teacher.firstName}+${teacher.lastName}&background=6366f1&color=fff`} alt="" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-surface-900 leading-tight">{teacher.firstName} {teacher.lastName}</span>
+                              <span className="text-xs text-surface-400">{teacher.email}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                            <BookOpen size={10} />
+                            {teacher.specialty}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {teacher.tutorOf ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                              <GraduationCap size={10} />
+                              {formatGrade(teacher.tutorOf.gradeLevel)} {teacher.tutorOf.line}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-surface-400 italic">No asignada</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleEdit(teacher); }}
+                              className="p-1.5 hover:bg-white hover:shadow-sm text-brand-600 rounded-lg transition-all"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleDelete(teacher.id); }}
+                              className="p-1.5 hover:bg-white hover:shadow-sm text-red-600 rounded-lg transition-all"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                            <ChevronRight size={16} className="text-surface-300 ml-1" />
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                  {!loading && filteredTeachers.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center">
+                        <UserSquare2 size={40} className="mx-auto text-surface-200 mb-3" />
+                        <p className="text-surface-400">No se encontraron profesores que coincidan con la búsqueda.</p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Teacher Detail Panel */}
+        <AnimatePresence>
+          {selectedTeacher && (
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="flex-1 glass-card p-0 overflow-hidden sticky top-6 max-h-[calc(100vh-160px)]"
+            >
+              <div className="p-6 bg-gradient-to-br from-brand-600 to-indigo-700 text-white relative">
+                <button 
+                  onClick={() => setSelectedTeacher(null)}
+                  className="absolute top-4 right-4 p-1.5 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <X size={18} />
+                </button>
+                <div className="flex flex-col items-center text-center mt-4">
+                  <div className="w-20 h-20 rounded-full border-4 border-white/20 overflow-hidden mb-4 shadow-xl">
+                    <img src={`https://ui-avatars.com/api/?name=${selectedTeacher.firstName}+${selectedTeacher.lastName}&background=fff&color=6366f1&size=128`} alt="" />
+                  </div>
+                  <h3 className="text-xl font-bold">{selectedTeacher.firstName} {selectedTeacher.lastName}</h3>
+                  <p className="text-brand-100 text-sm font-medium">{selectedTeacher.specialty}</p>
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-surface-400 uppercase tracking-widest">Información de Contacto</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-sm text-surface-600">
+                      <div className="w-8 h-8 rounded-lg bg-surface-50 flex items-center justify-center text-surface-400">
+                        <Mail size={16} />
+                      </div>
+                      <span>{selectedTeacher.email}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-surface-600">
+                      <div className="w-8 h-8 rounded-lg bg-surface-50 flex items-center justify-center text-surface-400">
+                        <Phone size={16} />
+                      </div>
+                      <span>{selectedTeacher.phone}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-2 border-t border-surface-100">
+                  <h4 className="text-xs font-bold text-surface-400 uppercase tracking-widest">Datos Personales</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-sm text-surface-600">
+                      <div className="w-8 h-8 rounded-lg bg-surface-50 flex items-center justify-center text-surface-400">
+                        <Cake size={16} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-surface-400 uppercase font-bold">F. Nacimiento</span>
+                        <span>{new Date(selectedTeacher.dateOfBirth).toLocaleDateString('es-ES')}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-surface-600">
+                      <div className="w-8 h-8 rounded-lg bg-surface-50 flex items-center justify-center text-surface-400">
+                        <Calendar size={16} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-surface-400 uppercase font-bold">F. Contratación</span>
+                        <span>{new Date(selectedTeacher.hireDate).toLocaleDateString('es-ES')}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-2 border-t border-surface-100">
+                  <h4 className="text-xs font-bold text-surface-400 uppercase tracking-widest">Información Bancaria</h4>
+                  <div className="p-3 bg-surface-50 rounded-xl flex items-start gap-3">
+                    <CreditCard className="text-surface-400 mt-1" size={18} />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-surface-400 uppercase font-bold">IBAN de Cobro</span>
+                      <span className="text-xs font-mono font-medium text-surface-700">{selectedTeacher.iban}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
+      {/* Form Modal */}
       <AnimatePresence>
         {showForm && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -201,18 +338,29 @@ export default function Teachers() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden"
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl relative z-10 overflow-hidden"
             >
               <div className="p-6 border-b border-surface-100 flex items-center justify-between bg-surface-50">
-                <h3 className="text-xl font-bold">{editing ? 'Editar Profesor' : 'Nuevo Profesor'}</h3>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center">
+                    <UserSquare2 size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">{editing ? 'Editar Profesor' : 'Nuevo Profesor'}</h3>
+                    <p className="text-sm text-surface-500">Completa la ficha técnica del docente</p>
+                  </div>
+                </div>
                 <button onClick={resetForm} className="p-2 hover:bg-surface-200 rounded-full transition-colors">
                   <X size={20} />
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="p-8 space-y-6">
+              <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-surface-700">Nombre</label>
+                    <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                       <User size={14} className="text-surface-400" /> Nombre
+                    </label>
                     <input 
                       value={form.firstName} 
                       onChange={e => setForm({ ...form, firstName: e.target.value })} 
@@ -222,7 +370,7 @@ export default function Teachers() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-surface-700">Apellidos</label>
+                    <label className="text-sm font-bold text-surface-700">Apellidos</label>
                     <input 
                       value={form.lastName} 
                       onChange={e => setForm({ ...form, lastName: e.target.value })} 
@@ -232,28 +380,92 @@ export default function Teachers() {
                     />
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-surface-700">Especialidad</label>
-                  <input 
-                    value={form.specialty} 
-                    onChange={e => setForm({ ...form, specialty: e.target.value })} 
-                    placeholder="Ej. Matemáticas, Inglés..." 
-                    className="input-field w-full" 
-                  />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                      <Mail size={14} className="text-surface-400" /> Email
+                    </label>
+                    <input 
+                      type="email"
+                      value={form.email} 
+                      onChange={e => setForm({ ...form, email: e.target.value })} 
+                      placeholder="email@colegio.es" 
+                      className="input-field w-full" 
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                      <Phone size={14} className="text-surface-400" /> Teléfono
+                    </label>
+                    <input 
+                      value={form.phone} 
+                      onChange={e => setForm({ ...form, phone: e.target.value })} 
+                      placeholder="600 000 000" 
+                      className="input-field w-full" 
+                      required 
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-surface-700">Fecha de Contratación</label>
-                  <input 
-                    type="date"
-                    value={form.hireDate} 
-                    onChange={e => setForm({ ...form, hireDate: e.target.value })} 
-                    className="input-field w-full" 
-                  />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5 col-span-2">
+                    <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                       <BookOpen size={14} className="text-surface-400" /> Especialidad
+                    </label>
+                    <input 
+                      value={form.specialty} 
+                      onChange={e => setForm({ ...form, specialty: e.target.value })} 
+                      placeholder="Ej. Matemáticas, Primaria, Inglés..." 
+                      className="input-field w-full" 
+                    />
+                  </div>
                 </div>
-                <div className="flex gap-3 pt-4">
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                      <Cake size={14} className="text-surface-400" /> Fecha Nacimiento
+                    </label>
+                    <input 
+                      type="date"
+                      value={form.dateOfBirth} 
+                      onChange={e => setForm({ ...form, dateOfBirth: e.target.value })} 
+                      className="input-field w-full" 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                      <Calendar size={14} className="text-surface-400" /> Fecha Contratación
+                    </label>
+                    <input 
+                      type="date"
+                      value={form.hireDate} 
+                      onChange={e => setForm({ ...form, hireDate: e.target.value })} 
+                      className="input-field w-full" 
+                    />
+                  </div>
+                </div>
+
+                {/* Financial Info */}
+                <div className="space-y-1.5 pt-2 border-t border-surface-100">
+                  <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                    <CreditCard size={14} className="text-surface-400" /> Cuenta Bancaria (IBAN)
+                  </label>
+                  <input 
+                    value={form.iban} 
+                    onChange={e => setForm({ ...form, iban: e.target.value })} 
+                    placeholder="ES00 0000 0000 00 0000000000" 
+                    className="input-field w-full font-mono text-sm" 
+                  />
+                  <p className="text-[10px] text-surface-400">Información confidencial cifrada en base de datos.</p>
+                </div>
+
+                <div className="flex gap-3 pt-6">
                   <button type="button" onClick={resetForm} className="btn-secondary flex-1">Cancelar</button>
-                  <button type="submit" className="btn-primary flex-1">
-                    {editing ? 'Actualizar' : 'Registrar Profesor'}
+                  <button type="submit" className="btn-primary flex-1 py-3">
+                    {editing ? 'Guardar Cambios' : 'Registrar Profesor'}
                   </button>
                 </div>
               </form>

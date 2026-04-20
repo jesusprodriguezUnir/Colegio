@@ -17,7 +17,23 @@ public static class TeachersEndpoints
 
     private static async Task<IResult> GetAllTeachers(ColegioDbContext db)
     {
-        var teachers = await db.Teachers.AsNoTracking().ToListAsync();
+        var teachers = await db.Teachers
+            .AsNoTracking()
+            .Select(t => new {
+                t.Id,
+                t.FirstName,
+                t.LastName,
+                t.Specialty,
+                t.Email,
+                t.Phone,
+                t.HireDate,
+                t.DateOfBirth,
+                TutorOf = db.Classrooms
+                    .Where(c => c.TutorId == t.Id)
+                    .Select(c => new { c.GradeLevel, c.Line })
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
         return Results.Ok(teachers);
     }
 
@@ -43,6 +59,10 @@ public static class TeachersEndpoints
         teacher.FirstName = updated.FirstName;
         teacher.LastName = updated.LastName;
         teacher.Specialty = updated.Specialty;
+        teacher.Email = updated.Email;
+        teacher.Phone = updated.Phone;
+        teacher.IBAN = updated.IBAN;
+        teacher.DateOfBirth = updated.DateOfBirth;
         teacher.HireDate = updated.HireDate;
 
         db.Teachers.Update(teacher);

@@ -47,44 +47,59 @@ public static class SeedData
 
     private static List<Teacher> SeedTeachers(ColegioDbContext context)
     {
-        var teachers = new List<Teacher>
+        var firstNames = new[] { "María", "José", "Ana", "Carlos", "Laura", "David", "Sofia", "Miguel", "Lucía", "Javier", "Elena", "Pablo", "Carmen", "Daniel", "Paula", "Adrián", "Marta", "Alejandro", "Sara", "Álvaro", "Raquel", "Manuel", "Irene", "Francisco", "Beatriz", "Ignacio", "Silvia", "Rubén", "Cristina", "Jorge" };
+        var lastNames = new[] { "García López", "Martínez Sánchez", "Rodríguez Torres", "López Fernández", "González Ruiz", "Pérez Gómez", "Jiménez Moreno", "Sánchez Castillo", "Díaz Muñoz", "Perales Ruiz", "Vázquez Ortiz", "Castro Rey", "Blanco Vega", "Navarro Soler", "Serrano Caballero", "Molina Gil", "Morales Santos", "Ortega Delgado", "Delgado Flor", "Castillo Sol", "Medina Vera", "Vega Luna", "León Soto", "Herrero Rico", "Gil Marín", "Vicente Paz", "Sanz Cruz", "Fuentes Lobo", "Cruz Solis", "Ibáñez Mar" };
+        var specialties = new[] { "Educación Infantil", "Matemáticas", "Lengua", "Ciencias", "Educación Física", "Inglés", "Música", "Artes", "Geografía e Historia", "Física y Química", "Apoyo Educativo", "Psicología" };
+
+        var teachers = new List<Teacher>();
+        var random = new Random(42);
+
+        for (int i = 0; i < 30; i++)
         {
-            new() { Id = Guid.Parse("22222222-2222-2222-2222-222222221111"), FirstName = "María", LastName = "García López", Specialty = "Educación Infantil", HireDate = new DateTime(2018, 9, 1) },
-            new() { Id = Guid.Parse("22222222-2222-2222-2222-222222221112"), FirstName = "José", LastName = "Martínez Sánchez", Specialty = "Matemáticas", HireDate = new DateTime(2015, 9, 1) },
-            new() { Id = Guid.Parse("22222222-2222-2222-2222-222222221113"), FirstName = "Ana", LastName = "Rodríguez Torres", Specialty = "Lengua", HireDate = new DateTime(2016, 9, 1) },
-            new() { Id = Guid.Parse("22222222-2222-2222-2222-222222221114"), FirstName = "Carlos", LastName = "López Fernández", Specialty = "Ciencias", HireDate = new DateTime(2017, 9, 1) },
-            new() { Id = Guid.Parse("22222222-2222-2222-2222-222222221115"), FirstName = "Laura", LastName = "González Ruiz", Specialty = "Educación Física", HireDate = new DateTime(2019, 9, 1) },
-            new() { Id = Guid.Parse("22222222-2222-2222-2222-222222221116"), FirstName = "David", LastName = "Pérez Gómez", Specialty = "Inglés", HireDate = new DateTime(2018, 9, 1) },
-            new() { Id = Guid.Parse("22222222-2222-2222-2222-222222221117"), FirstName = "Sofia", LastName = "Jiménez Moreno", Specialty = "Educación Infantil", HireDate = new DateTime(2020, 9, 1) },
-            new() { Id = Guid.Parse("22222222-2222-2222-2222-222222221118"), FirstName = "Miguel", LastName = "Sánchez Castillo", Specialty = "Música", HireDate = new DateTime(2021, 9, 1) }
-        };
+            var firstName = firstNames[i % firstNames.Length];
+            var lastName = lastNames[i % lastNames.Length];
+            var specialty = specialties[random.Next(specialties.Length)];
+            
+            teachers.Add(new Teacher
+            {
+                Id = Guid.NewGuid(),
+                FirstName = firstName,
+                LastName = lastName,
+                Specialty = specialty,
+                Email = $"{firstName.ToLower().Replace("á", "a").Replace("é", "e").Replace("í", "i").Replace("ó", "o").Replace("ú", "u")}.{lastName.Split(' ')[0].ToLower()}@colegiocarmen.es",
+                Phone = $"6{random.Next(10000000, 99999999)}",
+                IBAN = $"ES{random.Next(10, 99)} 2100 {random.Next(1000, 9999)} {random.Next(10, 99)} {random.Next(10000000, 99999999)}",
+                DateOfBirth = new DateTime(random.Next(1970, 1995), random.Next(1, 13), random.Next(1, 28)),
+                HireDate = new DateTime(random.Next(2010, 2023), 9, 1)
+            });
+        }
+
         context.Teachers.AddRange(teachers);
         return teachers;
     }
 
     private static List<Classroom> SeedClassrooms(ColegioDbContext context, School school, List<Teacher> teachers)
     {
-        var classrooms = new List<Classroom>
+        var classrooms = new List<Classroom>();
+        var grades = Enum.GetValues<GradeLevel>();
+        var lines = Enum.GetValues<ClassroomLine>();
+        int teacherIndex = 0;
+
+        foreach (var grade in grades)
         {
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331111"), GradeLevel = GradeLevel.Infantile3, Line = ClassroomLine.A, SchoolId = school.Id, TutorId = teachers[0].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331112"), GradeLevel = GradeLevel.Infantile3, Line = ClassroomLine.B, SchoolId = school.Id, TutorId = teachers[6].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331113"), GradeLevel = GradeLevel.Infantile4, Line = ClassroomLine.A, SchoolId = school.Id, TutorId = teachers[0].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331114"), GradeLevel = GradeLevel.Infantile4, Line = ClassroomLine.B, SchoolId = school.Id, TutorId = teachers[6].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331115"), GradeLevel = GradeLevel.Infantile5, Line = ClassroomLine.A, SchoolId = school.Id, TutorId = teachers[0].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331116"), GradeLevel = GradeLevel.Infantile5, Line = ClassroomLine.B, SchoolId = school.Id, TutorId = teachers[6].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331117"), GradeLevel = GradeLevel.Primary1, Line = ClassroomLine.A, SchoolId = school.Id, TutorId = teachers[1].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331118"), GradeLevel = GradeLevel.Primary1, Line = ClassroomLine.B, SchoolId = school.Id, TutorId = teachers[2].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331119"), GradeLevel = GradeLevel.Primary2, Line = ClassroomLine.A, SchoolId = school.Id, TutorId = teachers[1].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331120"), GradeLevel = GradeLevel.Primary2, Line = ClassroomLine.B, SchoolId = school.Id, TutorId = teachers[2].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331121"), GradeLevel = GradeLevel.Primary3, Line = ClassroomLine.A, SchoolId = school.Id, TutorId = teachers[3].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331122"), GradeLevel = GradeLevel.Primary3, Line = ClassroomLine.B, SchoolId = school.Id, TutorId = teachers[3].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331123"), GradeLevel = GradeLevel.Primary4, Line = ClassroomLine.A, SchoolId = school.Id, TutorId = teachers[4].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331124"), GradeLevel = GradeLevel.Primary4, Line = ClassroomLine.B, SchoolId = school.Id, TutorId = teachers[5].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331125"), GradeLevel = GradeLevel.Primary5, Line = ClassroomLine.A, SchoolId = school.Id, TutorId = teachers[4].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331126"), GradeLevel = GradeLevel.Primary5, Line = ClassroomLine.B, SchoolId = school.Id, TutorId = teachers[5].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331127"), GradeLevel = GradeLevel.Primary6, Line = ClassroomLine.A, SchoolId = school.Id, TutorId = teachers[7].Id },
-            new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331128"), GradeLevel = GradeLevel.Primary6, Line = ClassroomLine.B, SchoolId = school.Id, TutorId = teachers[7].Id }
-        };
+            foreach (var line in lines)
+            {
+                classrooms.Add(new Classroom
+                {
+                    Id = Guid.NewGuid(),
+                    GradeLevel = grade,
+                    Line = line,
+                    SchoolId = school.Id,
+                    TutorId = teacherIndex < teachers.Count ? teachers[teacherIndex++].Id : null
+                });
+            }
+        }
+
         context.Classrooms.AddRange(classrooms);
         return classrooms;
     }

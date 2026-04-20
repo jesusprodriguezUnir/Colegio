@@ -6,6 +6,10 @@ public class Teacher
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Specialty { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string IBAN { get; set; } = string.Empty;
+    public DateTime DateOfBirth { get; set; }
     public DateTime HireDate { get; set; }
 
     public ICollection<Classroom> TutoredClassrooms { get; set; } = new List<Classroom>();

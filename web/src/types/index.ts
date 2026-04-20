@@ -15,7 +15,15 @@ export interface Teacher {
   firstName: string
   lastName: string
   specialty: string
+  email: string
+  phone: string
+  iban: string
+  dateOfBirth: string
   hireDate: string
+  tutorOf?: {
+    gradeLevel: number
+    line: string
+  }
 }
 
 export interface Student {
