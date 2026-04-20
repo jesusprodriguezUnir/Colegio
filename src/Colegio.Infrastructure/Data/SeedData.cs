@@ -1,4 +1,5 @@
 using Colegio.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Colegio.Infrastructure.Data;
 
@@ -6,13 +7,28 @@ public static class SeedData
 {
     public static async Task SeedAsync(ColegioDbContext context, bool force = false)
     {
-        if (!force && context.Schools.Any()) return;
+        if (!force && await context.Schools.AnyAsync()) return;
 
         if (force)
         {
             await ClearAllDataAsync(context);
         }
 
+        var school = SeedSchools(context);
+        var teachers = SeedTeachers(context);
+        var classrooms = SeedClassrooms(context, school, teachers);
+        var parents = SeedParents(context);
+        var students = SeedStudents(context, classrooms);
+        
+        SeedRelationships(context, students, parents);
+        SeedInvoices(context, items: (parents, students));
+        SeedSchedules(context, classrooms, teachers);
+
+        await context.SaveChangesAsync();
+    }
+
+    private static School SeedSchools(ColegioDbContext context)
+    {
         var school = new School
         {
             Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
@@ -22,7 +38,11 @@ public static class SeedData
             ContactEmail = "colegio@virgendelcarmen.es"
         };
         context.Schools.Add(school);
+        return school;
+    }
 
+    private static List<Teacher> SeedTeachers(ColegioDbContext context)
+    {
         var teachers = new List<Teacher>
         {
             new() { Id = Guid.Parse("22222222-2222-2222-2222-222222221111"), FirstName = "María", LastName = "García López", Specialty = "Educación Infantil", HireDate = new DateTime(2018, 9, 1) },
@@ -35,7 +55,11 @@ public static class SeedData
             new() { Id = Guid.Parse("22222222-2222-2222-2222-222222221118"), FirstName = "Miguel", LastName = "Sánchez Castillo", Specialty = "Música", HireDate = new DateTime(2021, 9, 1) }
         };
         context.Teachers.AddRange(teachers);
+        return teachers;
+    }
 
+    private static List<Classroom> SeedClassrooms(ColegioDbContext context, School school, List<Teacher> teachers)
+    {
         var classrooms = new List<Classroom>
         {
             new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331111"), GradeLevel = GradeLevel.Infantile3, Line = ClassroomLine.A, SchoolId = school.Id, TutorId = teachers[0].Id },
@@ -58,7 +82,11 @@ public static class SeedData
             new() { Id = Guid.Parse("33333333-3333-3333-3333-333333331128"), GradeLevel = GradeLevel.Primary6, Line = ClassroomLine.B, SchoolId = school.Id, TutorId = teachers[7].Id }
         };
         context.Classrooms.AddRange(classrooms);
+        return classrooms;
+    }
 
+    private static List<Parent> SeedParents(ColegioDbContext context)
+    {
         var parents = new List<Parent>
         {
             new() { Id = Guid.Parse("44444444-4444-4444-4444-444444441111"), FirstName = "Antonio", LastName = "Fernández", Email = "antonio.fernandez@email.es", Phone = "612345678", Address = "Av. Roma 45, Madrid" },
@@ -68,7 +96,11 @@ public static class SeedData
             new() { Id = Guid.Parse("44444444-4444-4444-4444-444444441115"), FirstName = "Pablo", LastName = "Castro López", Email = "pablo.castro@email.es", Phone = "612345682", Address = "Av. Castilla 23, Madrid" }
         };
         context.Parents.AddRange(parents);
+        return parents;
+    }
 
+    private static List<Student> SeedStudents(ColegioDbContext context, List<Classroom> classrooms)
+    {
         var students = new List<Student>
         {
             new() { Id = Guid.Parse("55555555-5555-5555-5555-555555551111"), FirstName = "Alejandro", LastName = "Fernández García", DateOfBirth = new DateTime(2021, 3, 15), ClassroomId = classrooms[0].Id },
@@ -81,7 +113,11 @@ public static class SeedData
             new() { Id = Guid.Parse("55555555-5555-5555-5555-555555551118"), FirstName = "Emma", LastName = "Sánchez Gómez", DateOfBirth = new DateTime(2018, 1, 30), ClassroomId = classrooms[13].Id }
         };
         context.Students.AddRange(students);
+        return students;
+    }
 
+    private static void SeedRelationships(ColegioDbContext context, List<Student> students, List<Parent> parents)
+    {
         var studentParents = new List<StudentParent>
         {
             new() { StudentId = students[0].Id, ParentId = parents[0].Id, Relationship = RelationshipType.Father },
@@ -97,18 +133,24 @@ public static class SeedData
             new() { StudentId = students[7].Id, ParentId = parents[2].Id, Relationship = RelationshipType.Mother }
         };
         context.StudentParents.AddRange(studentParents);
+    }
 
+    private static void SeedInvoices(ColegioDbContext context, (List<Parent> parents, List<Student> students) items)
+    {
         var invoices = new List<Invoice>
         {
-            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661111"), ParentId = parents[0].Id, StudentId = students[0].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 350.00m, Status = InvoiceStatus.Pending, Concept = InvoiceConcept.Monthly },
-            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661112"), ParentId = parents[0].Id, StudentId = students[1].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 350.00m, Status = InvoiceStatus.Pending, Concept = InvoiceConcept.Monthly },
-            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661113"), ParentId = parents[1].Id, StudentId = students[2].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 350.00m, Status = InvoiceStatus.Pending, Concept = InvoiceConcept.Monthly },
-            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661114"), ParentId = parents[2].Id, StudentId = students[3].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 420.00m, Status = InvoiceStatus.Pending, Concept = InvoiceConcept.Monthly },
-            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661115"), ParentId = parents[3].Id, StudentId = students[4].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 350.00m, Status = InvoiceStatus.Paid, Concept = InvoiceConcept.Monthly },
-            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661116"), ParentId = parents[4].Id, StudentId = students[6].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 350.00m, Status = InvoiceStatus.Pending, Concept = InvoiceConcept.Monthly }
+            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661111"), ParentId = items.parents[0].Id, StudentId = items.students[0].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 350.00m, Status = InvoiceStatus.Pending, Concept = InvoiceConcept.Monthly },
+            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661112"), ParentId = items.parents[0].Id, StudentId = items.students[1].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 350.00m, Status = InvoiceStatus.Pending, Concept = InvoiceConcept.Monthly },
+            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661113"), ParentId = items.parents[1].Id, StudentId = items.students[2].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 350.00m, Status = InvoiceStatus.Pending, Concept = InvoiceConcept.Monthly },
+            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661114"), ParentId = items.parents[2].Id, StudentId = items.students[3].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 420.00m, Status = InvoiceStatus.Pending, Concept = InvoiceConcept.Monthly },
+            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661115"), ParentId = items.parents[3].Id, StudentId = items.students[4].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 350.00m, Status = InvoiceStatus.Paid, Concept = InvoiceConcept.Monthly },
+            new() { Id = Guid.Parse("66666666-6666-6666-6666-666666661116"), ParentId = items.parents[4].Id, StudentId = items.students[6].Id, IssueDate = new DateTime(2026, 4, 1), DueDate = new DateTime(2026, 4, 30), TotalAmount = 350.00m, Status = InvoiceStatus.Pending, Concept = InvoiceConcept.Monthly }
         };
         context.Invoices.AddRange(invoices);
+    }
 
+    private static void SeedSchedules(ColegioDbContext context, List<Classroom> classrooms, List<Teacher> teachers)
+    {
         var schedules = new List<Schedule>
         {
             new() { Id = Guid.NewGuid(), ClassroomId = classrooms[6].Id, TeacherId = teachers[1].Id, Subject = "Matemáticas", DayOfWeek = Domain.Entities.DayOfWeek.Monday, StartTime = new TimeSpan(9, 0, 0), EndTime = new TimeSpan(10, 0, 0) },
@@ -116,8 +158,6 @@ public static class SeedData
             new() { Id = Guid.NewGuid(), ClassroomId = classrooms[7].Id, TeacherId = teachers[3].Id, Subject = "Ciencias", DayOfWeek = Domain.Entities.DayOfWeek.Tuesday, StartTime = new TimeSpan(11, 30, 0), EndTime = new TimeSpan(12, 30, 0) }
         };
         context.Schedules.AddRange(schedules);
-
-        await context.SaveChangesAsync();
     }
 
     public static async Task ClearAllDataAsync(ColegioDbContext context)
@@ -139,13 +179,13 @@ public static class SeedData
     {
         return new
         {
-            Schools = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Schools),
-            Teachers = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Teachers),
-            Classrooms = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Classrooms),
-            Students = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Students),
-            Parents = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Parents),
-            Schedules = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Schedules),
-            Invoices = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(context.Invoices)
+            Schools = await context.Schools.CountAsync(),
+            Teachers = await context.Teachers.CountAsync(),
+            Classrooms = await context.Classrooms.CountAsync(),
+            Students = await context.Students.CountAsync(),
+            Parents = await context.Parents.CountAsync(),
+            Schedules = await context.Schedules.CountAsync(),
+            Invoices = await context.Invoices.CountAsync()
         };
     }
 }
