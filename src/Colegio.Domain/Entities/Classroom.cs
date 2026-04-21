@@ -10,7 +10,13 @@ public enum GradeLevel
     Primary3 = 6,
     Primary4 = 7,
     Primary5 = 8,
-    Primary6 = 9
+    Primary6 = 9,
+    ESO1 = 10,
+    ESO2 = 11,
+    ESO3 = 12,
+    ESO4 = 13,
+    Bachillerato1 = 14,
+    Bachillerato2 = 15
 }
 
 public enum ClassroomLine

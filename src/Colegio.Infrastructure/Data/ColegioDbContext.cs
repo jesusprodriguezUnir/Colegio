@@ -19,6 +19,8 @@ public class ColegioDbContext : DbContext
     public DbSet<StudentParent> StudentParents => Set<StudentParent>();
     public DbSet<Schedule> Schedules => Set<Schedule>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<Subject> Subjects => Set<Subject>();
+    public DbSet<Curriculum> Curriculums => Set<Curriculum>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,6 +44,7 @@ public class ColegioDbContext : DbContext
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.IBAN).HasMaxLength(50);
+            entity.Property(e => e.MaxWorkingHours).IsRequired().HasDefaultValue(25);
         });
 
         modelBuilder.Entity<Classroom>(entity =>
@@ -119,6 +122,21 @@ public class ColegioDbContext : DbContext
                 .WithMany(s => s.Invoices)
                 .HasForeignKey(e => e.StudentId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Subject>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Curriculum>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Subject)
+                .WithMany(s => s.Curriculums)
+                .HasForeignKey(e => e.SubjectId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

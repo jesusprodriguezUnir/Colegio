@@ -50,3 +50,9 @@ export const maintenanceApi = {
   reset: () => api.post('/maintenance/reset'),
   clear: () => api.delete('/maintenance/clear'),
 }
+
+export const curriculumApi = {
+  getAll: () => api.get('/curriculum'),
+  getByGrade: (grade: string) => api.get(`/curriculum/${grade}`),
+  getSubjects: () => api.get('/subjects'),
+}

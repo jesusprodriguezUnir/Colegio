@@ -22,6 +22,10 @@ public static class SeedData
         
         SeedRelationships(context, students, parents);
         SeedInvoices(context, items: (parents, students));
+        
+        var subjects = SeedSubjects(context);
+        SeedCurriculum(context, subjects);
+        
         SeedSchedules(context, classrooms, teachers);
 
         await context.SaveChangesAsync();
@@ -70,7 +74,8 @@ public static class SeedData
                 Phone = $"6{random.Next(10000000, 99999999)}",
                 IBAN = $"ES{random.Next(10, 99)} 2100 {random.Next(1000, 9999)} {random.Next(10, 99)} {random.Next(10000000, 99999999)}",
                 DateOfBirth = new DateTime(random.Next(1970, 1995), random.Next(1, 13), random.Next(1, 28)),
-                HireDate = new DateTime(random.Next(2010, 2023), 9, 1)
+                HireDate = new DateTime(random.Next(2010, 2023), 9, 1),
+                MaxWorkingHours = random.Next(15, 30)
             });
         }
 
@@ -189,7 +194,6 @@ public static class SeedData
         };
         context.Invoices.AddRange(invoices);
     }
-
     private static void SeedSchedules(ColegioDbContext context, List<Classroom> classrooms, List<Teacher> teachers)
     {
         var schedules = new List<Schedule>
@@ -199,6 +203,110 @@ public static class SeedData
             new() { Id = Guid.NewGuid(), ClassroomId = classrooms[7].Id, TeacherId = teachers[3].Id, Subject = "Ciencias", DayOfWeek = Domain.Entities.DayOfWeek.Tuesday, StartTime = new TimeSpan(11, 30, 0), EndTime = new TimeSpan(12, 30, 0) }
         };
         context.Schedules.AddRange(schedules);
+    }
+
+    private static Dictionary<string, Subject> SeedSubjects(ColegioDbContext context)
+    {
+        var subjectNames = new[]
+        {
+            "Lengua Castellana y Literatura", "Matemáticas", "Geografía e Historia", "Lengua Extranjera (Inglés)",
+            "Educación Física", "Biología y Geología", "Física y Química", "Tecnología y Digitalización",
+            "Ed. Plástica, Visual y Audiovisual", "Música", "Ed. en Valores Cívicos y Éticos", "Religión",
+            "Atención Educativa", "Materia Optativa", "Tutoría", "Filosofía", "Historia de la Filosofía", "Historia de España"
+        };
+
+        var subjects = subjectNames.Select(name => new Subject { Id = Guid.NewGuid(), Name = name }).ToDictionary(s => s.Name);
+        context.Subjects.AddRange(subjects.Values);
+        return subjects;
+    }
+
+    private static void SeedCurriculum(ColegioDbContext context, Dictionary<string, Subject> subjects)
+    {
+        var curriculum = new List<Curriculum>();
+
+        // ESO 1
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Lengua Castellana y Literatura"], 5);
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Matemáticas"], 4);
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Lengua Extranjera (Inglés)"], 3);
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Geografía e Historia"], 3);
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Educación Física"], 3);
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Biología y Geología"], 3);
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Ed. Plástica, Visual y Audiovisual"], 2);
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Música"], 2);
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Religión"], 2);
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Materia Optativa"], 2);
+        AddEntry(curriculum, GradeLevel.ESO1, subjects["Tutoría"], 1);
+
+        // ESO 2
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Lengua Castellana y Literatura"], 4);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Matemáticas"], 4);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Lengua Extranjera (Inglés)"], 3);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Geografía e Historia"], 3);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Educación Física"], 3);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Física y Química"], 3);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Tecnología y Digitalización"], 3);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Ed. Plástica, Visual y Audiovisual"], 2);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Ed. en Valores Cívicos y Éticos"], 1);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Religión"], 1);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Materia Optativa"], 2);
+        AddEntry(curriculum, GradeLevel.ESO2, subjects["Tutoría"], 1);
+
+        // ESO 3
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Lengua Castellana y Literatura"], 4);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Matemáticas"], 4);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Lengua Extranjera (Inglés)"], 3);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Geografía e Historia"], 3);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Educación Física"], 3);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Biología y Geología"], 2);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Física y Química"], 3);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Tecnología y Digitalización"], 2);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Música"], 2);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Religión"], 1);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Materia Optativa"], 2);
+        AddEntry(curriculum, GradeLevel.ESO3, subjects["Tutoría"], 1);
+
+        // ESO 4
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Lengua Castellana y Literatura"], 4);
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Matemáticas"], 4);
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Lengua Extranjera (Inglés)"], 3);
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Geografía e Historia"], 3);
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Educación Física"], 2);
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Religión"], 2);
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Materia Optativa"], 2);
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Tutoría"], 1);
+        // Materias de opción (ejemplos)
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Biología y Geología"], 3);
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Física y Química"], 3);
+        AddEntry(curriculum, GradeLevel.ESO4, subjects["Tecnología y Digitalización"], 3);
+
+        // Bachillerato 1
+        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Lengua Castellana y Literatura"], 4);
+        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Lengua Extranjera (Inglés)"], 3);
+        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Filosofía"], 3);
+        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Educación Física"], 2);
+        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Materia Optativa"], 3);
+        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Religión"], 1);
+        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Tutoría"], 1);
+        // Modalidad (ejemplos)
+        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Matemáticas"], 4);
+
+        // Bachillerato 2
+        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Lengua Castellana y Literatura"], 4);
+        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Lengua Extranjera (Inglés)"], 3);
+        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Historia de España"], 3);
+        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Historia de la Filosofía"], 3);
+        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Materia Optativa"], 3);
+        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Religión"], 1);
+        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Tutoría"], 1);
+        // Modalidad (ejemplos)
+        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Matemáticas"], 4);
+
+        context.Curriculums.AddRange(curriculum);
+    }
+
+    private static void AddEntry(List<Curriculum> list, GradeLevel grade, Subject subject, int hours)
+    {
+        list.Add(new Curriculum { Id = Guid.NewGuid(), GradeLevel = grade, SubjectId = subject.Id, WeeklyHours = hours });
     }
 
     public static async Task ClearAllDataAsync(ColegioDbContext context)
@@ -211,6 +319,8 @@ public static class SeedData
         context.Classrooms.RemoveRange(context.Classrooms);
         context.Teachers.RemoveRange(context.Teachers);
         context.Parents.RemoveRange(context.Parents);
+        context.Curriculums.RemoveRange(context.Curriculums);
+        context.Subjects.RemoveRange(context.Subjects);
         context.Schools.RemoveRange(context.Schools);
 
         await context.SaveChangesAsync();
@@ -226,7 +336,9 @@ public static class SeedData
             Students = await context.Students.CountAsync(),
             Parents = await context.Parents.CountAsync(),
             Schedules = await context.Schedules.CountAsync(),
-            Invoices = await context.Invoices.CountAsync()
+            Invoices = await context.Invoices.CountAsync(),
+            Subjects = await context.Subjects.CountAsync(),
+            CurriculumEntries = await context.Curriculums.CountAsync()
         };
     }
 }

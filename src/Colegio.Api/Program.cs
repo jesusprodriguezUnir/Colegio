@@ -52,6 +52,7 @@ app.MapStudentsEndpoints();
 app.MapParentsEndpoints();
 app.MapInvoicesEndpoints();
 app.MapSchedulesEndpoints();
+app.MapCurriculumEndpoints();
 app.MapMaintenanceEndpoints();
 
 app.Run();

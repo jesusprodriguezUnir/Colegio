@@ -13,6 +13,7 @@ public class Teacher
     public string IBAN { get; set; } = string.Empty;
     public DateTime DateOfBirth { get; set; }
     public DateTime HireDate { get; set; }
+    public int MaxWorkingHours { get; set; }
 
     [JsonIgnore]
     public ICollection<Classroom> TutoredClassrooms { get; set; } = new List<Classroom>();

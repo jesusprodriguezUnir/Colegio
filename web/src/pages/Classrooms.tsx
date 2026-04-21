@@ -200,10 +200,13 @@ export default function Classrooms() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-sm text-surface-600">
-                          <Users size={16} className="text-surface-400" />
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setSelectedClassroom(c); }}
+                          className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg hover:bg-brand-50 text-surface-600 hover:text-brand-600 transition-all group/btn border border-transparent hover:border-brand-100"
+                        >
+                          <Users size={16} className="text-surface-400 group-hover/btn:text-brand-500" />
                           <span className="font-semibold">{c.students?.length || 0}</span>
-                        </div>
+                        </button>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -15,7 +15,8 @@ import {
   User,
   GraduationCap,
   ChevronRight,
-  Cake
+  Cake,
+  Clock
 } from 'lucide-react'
 import { teachersApi } from '../services/api'
 import type { Teacher } from '../types'
@@ -34,7 +35,8 @@ export default function Teachers() {
     phone: '', 
     iban: '', 
     dateOfBirth: '', 
-    hireDate: '' 
+    hireDate: '',
+    maxWorkingHours: 25
   })
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -78,7 +80,8 @@ export default function Teachers() {
       phone: '', 
       iban: '', 
       dateOfBirth: '', 
-      hireDate: '' 
+      hireDate: '',
+      maxWorkingHours: 25
     })
     setShowForm(false)
     setEditing(null)
@@ -106,14 +109,18 @@ export default function Teachers() {
       phone: teacher.phone,
       iban: teacher.iban,
       dateOfBirth: teacher.dateOfBirth.split('T')[0],
-      hireDate: teacher.hireDate.split('T')[0] 
+      hireDate: teacher.hireDate.split('T')[0],
+      maxWorkingHours: teacher.maxWorkingHours
     })
     setShowForm(true)
   }
 
   const formatGrade = (grade: number) => {
-    if (grade >= 3 && grade <= 5) return `${grade} Años`;
-    return `${grade}º Prim.`;
+    if (grade >= 1 && grade <= 3) return `${grade + 2} Años`;
+    if (grade >= 4 && grade <= 9) return `${grade - 3}º Prim.`;
+    if (grade >= 10 && grade <= 13) return `${grade - 9}º ESO`;
+    if (grade >= 14 && grade <= 15) return `${grade - 13}º Bach.`;
+    return grade.toString();
   };
 
   const filteredTeachers = teachers.filter(t => 
@@ -317,6 +324,17 @@ export default function Teachers() {
                     </div>
                   </div>
                 </div>
+
+                <div className="space-y-4 pt-2 border-t border-surface-100">
+                  <h4 className="text-xs font-bold text-surface-400 uppercase tracking-widest">Carga Lectiva</h4>
+                  <div className="p-3 bg-brand-50 rounded-xl flex items-start gap-3 border border-brand-100">
+                    <Clock className="text-brand-600 mt-1" size={18} />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-brand-600 uppercase font-bold">Horas Semanales Máx.</span>
+                      <span className="text-lg font-bold text-brand-900">{selectedTeacher.maxWorkingHours}h</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -460,6 +478,20 @@ export default function Teachers() {
                     className="input-field w-full font-mono text-sm" 
                   />
                   <p className="text-[10px] text-surface-400">Información confidencial cifrada en base de datos.</p>
+                </div>
+
+                <div className="space-y-1.5 pt-2 border-t border-surface-100">
+                  <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                    <Clock size={14} className="text-surface-400" /> Carga Lectiva Máxima (Horas/Semana)
+                  </label>
+                  <input 
+                    type="number"
+                    value={form.maxWorkingHours} 
+                    onChange={e => setForm({ ...form, maxWorkingHours: parseInt(e.target.value) || 0 })} 
+                    placeholder="25" 
+                    className="input-field w-full" 
+                  />
+                  <p className="text-[10px] text-surface-400">Número de horas que el profesor puede impartir por semana.</p>
                 </div>
 
                 <div className="flex gap-3 pt-6">

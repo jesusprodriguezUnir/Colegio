@@ -28,6 +28,7 @@ public static class TeachersEndpoints
                 t.Phone,
                 t.HireDate,
                 t.DateOfBirth,
+                t.MaxWorkingHours,
                 TutorOf = db.Classrooms
                     .Where(c => c.TutorId == t.Id)
                     .Select(c => new { c.GradeLevel, c.Line })
@@ -64,6 +65,7 @@ public static class TeachersEndpoints
         teacher.IBAN = updated.IBAN;
         teacher.DateOfBirth = updated.DateOfBirth;
         teacher.HireDate = updated.HireDate;
+        teacher.MaxWorkingHours = updated.MaxWorkingHours;
 
         db.Teachers.Update(teacher);
         await db.SaveChangesAsync();

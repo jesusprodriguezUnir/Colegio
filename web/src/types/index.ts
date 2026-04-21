@@ -24,6 +24,7 @@ export interface Teacher {
     gradeLevel: number
     line: string
   }
+  maxWorkingHours: number
 }
 
 export interface Student {
@@ -53,4 +54,17 @@ export interface Invoice {
   totalAmount: number
   status: 'Pending' | 'Paid'
   concept: 'Monthly' | 'Lunch' | 'Extracurricular'
+}
+
+export interface Subject {
+  id: string
+  name: string
+}
+
+export interface Curriculum {
+  gradeLevel: string
+  subjects: {
+    name: string
+    weeklyHours: number
+  }[]
 }
