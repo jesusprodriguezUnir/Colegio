@@ -100,10 +100,10 @@ public static class SchedulesEndpoints
                     .Where(s => s.ClassroomId == classroomId && s.TimeSlot.SessionType == sessionType)
                     .ToListAsync();
 
-                return Results.Ok(new { result.Score, result.Warnings, Schedules = finalResult });
+                return Results.Ok(new { result.Score, result.Warnings, result.Stats, Schedules = finalResult });
             }
             
-            return Results.BadRequest(new { Error = "No se pudo generar el horario", result.Warnings });
+            return Results.BadRequest(new { Error = "No se pudo generar el horario", result.Warnings, result.Stats });
         }
         catch (Exception ex)
         {
@@ -129,7 +129,7 @@ public static class SchedulesEndpoints
             db.Schedules.AddRange(result.Schedules);
             await db.SaveChangesAsync();
 
-            return Results.Ok(new { Count = result.Schedules.Count, result.Score, result.Warnings, Message = "Schedules generated for all classrooms" });
+            return Results.Ok(new { Count = result.Schedules.Count, result.Score, result.Warnings, result.Stats, Message = "Schedules generated for all classrooms" });
         }
         catch (Exception ex)
         {

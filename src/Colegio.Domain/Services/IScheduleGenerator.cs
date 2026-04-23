@@ -15,18 +15,28 @@ public record GenerationResult(
     List<Schedule> Schedules, 
     double Score, 
     List<string> Warnings,
-    bool Success);
+    bool Success,
+    EngineStatistics? Stats = null);
+
+public record EngineStatistics(
+    int Iterations,
+    int BacktrackCount, 
+    double ElapsedMs,
+    int ClassUnitsProcessed,
+    int UnresolvedUnits);
 
 public record ValidationResult(
     bool IsValid, 
     List<ConflictInfo> Conflicts);
 
 public record ConflictInfo(
-    string Type,           // "TeacherConflict", "RoomConflict", "CurriculumGap"
+    string Type,           // "TeacherConflict", "RoomConflict", "CurriculumGap", "ClassUnitGap", etc.
     string Description,
     Guid? TeacherId,
     Guid? RoomId,
-    Guid? TimeSlotId);
+    Guid? TimeSlotId,
+    Guid? ClassUnitId = null,
+    string Severity = "Error");
 
 public record DebugResult(
     List<string> ImpossibleConstraints, 
