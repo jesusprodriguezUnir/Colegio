@@ -82,11 +82,13 @@ export default function TimetableGrid({
               ))}
             </tr>
           </thead>
-          <tbody className="relative">
+          <tbody className="relative min-h-[400px]">
             {loading && (
-              <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-[2px]">
-                <RefreshCw className="animate-spin text-brand-600" size={40} />
-              </div>
+              <tr className="absolute inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-[2px]">
+                <td colSpan={6} className="flex items-center justify-center w-full h-full">
+                  <RefreshCw className="animate-spin text-brand-600" size={40} />
+                </td>
+              </tr>
             )}
             
             {uniqueTimeRanges.map(time => {
@@ -132,7 +134,7 @@ export default function TimetableGrid({
                               />
                             ) : (
                               <div className="h-24 w-full rounded-2xl border-2 border-dashed border-surface-100 flex items-center justify-center text-surface-200 hover:border-brand-200 hover:bg-brand-50/30 transition-all group/empty">
-                                <span className="text-[10px] uppercase font-black tracking-[0.2em] group-hover/empty:text-brand-400 transition-colors">Vací</span>
+                                <span className="text-[10px] uppercase font-black tracking-[0.2em] group-hover/empty:text-brand-400 transition-colors">Vacío</span>
                               </div>
                             )}
                           </AnimatePresence>

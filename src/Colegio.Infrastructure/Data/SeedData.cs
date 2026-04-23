@@ -231,8 +231,10 @@ public static class SeedData
 
     private static void SeedTeacherCompetencies(ColegioDbContext context, List<Teacher> teachers, Dictionary<string, Subject> subjects)
     {
+        int i = 0;
         foreach (var teacher in teachers)
         {
+            i++;
             // Map specialty to subjects
             if (teacher.Specialty == "Matemáticas") teacher.Subjects.Add(subjects["Matemáticas"]);
             if (teacher.Specialty == "Lengua") teacher.Subjects.Add(subjects["Lengua Castellana y Literatura"]);
@@ -245,12 +247,32 @@ public static class SeedData
             if (teacher.Specialty == "Inglés") teacher.Subjects.Add(subjects["Lengua Extranjera (Inglés)"]);
             if (teacher.Specialty == "Música") teacher.Subjects.Add(subjects["Música"]);
             if (teacher.Specialty == "Artes") teacher.Subjects.Add(subjects["Ed. Plástica, Visual y Audiovisual"]);
+            if (teacher.Specialty == "Geografía e Historia") teacher.Subjects.Add(subjects["Geografía e Historia"]);
+            if (teacher.Specialty == "Física y Química") 
+            {
+                teacher.Subjects.Add(subjects["Física y Química"]);
+                teacher.Subjects.Add(subjects["Tecnología y Digitalización"]);
+            }
+            if (teacher.Specialty == "Apoyo Educativo" || teacher.Specialty == "Psicología") 
+            {
+                teacher.Subjects.Add(subjects["Ed. en Valores Cívicos y Éticos"]);
+                teacher.Subjects.Add(subjects["Atención Educativa"]);
+                teacher.Subjects.Add(subjects["Materia Optativa"]);
+            }
             
             // Infantil/Primaria can teach almost anything basic
             if (teacher.Specialty == "Educación Infantil")
             {
                 teacher.Subjects.Add(subjects["Tutoría"]);
                 teacher.Subjects.Add(subjects["Religión"]);
+            }
+            
+            // Ensure Filosofía subjects have someone
+            if (i % 7 == 0) 
+            {
+                teacher.Subjects.Add(subjects["Filosofía"]);
+                teacher.Subjects.Add(subjects["Historia de la Filosofía"]);
+                teacher.Subjects.Add(subjects["Historia de España"]);
             }
         }
     }
