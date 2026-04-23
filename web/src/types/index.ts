@@ -10,6 +10,15 @@ export interface School {
   contactEmail: string
 }
 
+export interface Room {
+  id: string
+  name: string
+  type: number
+  capacity: number
+  building?: string
+  floor?: number
+}
+
 export interface Teacher {
   id: string
   firstName: string
@@ -25,6 +34,10 @@ export interface Teacher {
     line: string
   }
   maxWorkingHours: number
+  maxGapsPerDay: number
+  minDailyHours: number
+  preferCompactSchedule: boolean
+  preferredFreeDay?: number
 }
 
 export interface Student {
@@ -104,6 +117,8 @@ export interface Schedule {
   teacher?: Teacher
   subject?: Subject
   timeSlot?: TimeSlot
+  classroom?: Classroom
+  room?: Room
 }
 
 export interface ClassUnit {

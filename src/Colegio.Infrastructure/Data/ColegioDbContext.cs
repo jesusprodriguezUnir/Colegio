@@ -50,6 +50,9 @@ public class ColegioDbContext : DbContext
             entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.IBAN).HasMaxLength(50);
             entity.Property(e => e.MaxWorkingHours).IsRequired().HasDefaultValue(25);
+            entity.Property(e => e.MaxGapsPerDay).HasDefaultValue(1);
+            entity.Property(e => e.MinDailyHours).HasDefaultValue(2);
+            entity.Property(e => e.PreferCompactSchedule).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<Classroom>(entity =>

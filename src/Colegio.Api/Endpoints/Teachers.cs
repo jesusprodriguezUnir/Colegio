@@ -13,6 +13,7 @@ public static class TeachersEndpoints
         app.MapPost("/api/teachers", CreateTeacher);
         app.MapPut("/api/teachers/{id}", UpdateTeacher);
         app.MapDelete("/api/teachers/{id}", DeleteTeacher);
+        app.MapPut("/api/teachers/{id}/availability", UpdateTeacherAvailability);
     }
 
     private static async Task<IResult> GetAllTeachers(ColegioDbContext db)
@@ -29,6 +30,10 @@ public static class TeachersEndpoints
                 t.HireDate,
                 t.DateOfBirth,
                 t.MaxWorkingHours,
+                t.MaxGapsPerDay,
+                t.MinDailyHours,
+                t.PreferCompactSchedule,
+                t.PreferredFreeDay,
                 TutorOf = db.Classrooms
                     .Where(c => c.TutorId == t.Id)
                     .Select(c => new { c.GradeLevel, c.Line })
@@ -66,6 +71,10 @@ public static class TeachersEndpoints
         teacher.DateOfBirth = updated.DateOfBirth;
         teacher.HireDate = updated.HireDate;
         teacher.MaxWorkingHours = updated.MaxWorkingHours;
+        teacher.MaxGapsPerDay = updated.MaxGapsPerDay;
+        teacher.MinDailyHours = updated.MinDailyHours;
+        teacher.PreferCompactSchedule = updated.PreferCompactSchedule;
+        teacher.PreferredFreeDay = updated.PreferredFreeDay;
 
         db.Teachers.Update(teacher);
         await db.SaveChangesAsync();
@@ -80,5 +89,28 @@ public static class TeachersEndpoints
         db.Teachers.Remove(teacher);
         await db.SaveChangesAsync();
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> UpdateTeacherAvailability(ColegioDbContext db, Guid id, List<TeacherAvailability> availabilities)
+    {
+        var teacher = await db.Teachers.AnyAsync(t => t.Id == id);
+        if (!teacher) return Results.NotFound();
+
+        // Update levels for existing availabilities
+        foreach (var updatedAvail in availabilities)
+        {
+            var existing = await db.TeacherAvailabilities
+                .FirstOrDefaultAsync(a => a.TeacherId == id && a.TimeSlotId == updatedAvail.TimeSlotId);
+            
+            if (existing != null)
+            {
+                existing.Level = updatedAvail.Level;
+                existing.IsAvailable = updatedAvail.Level != AvailabilityLevel.Unavailable;
+                db.TeacherAvailabilities.Update(existing);
+            }
+        }
+
+        await db.SaveChangesAsync();
+        return Results.Ok();
     }
 }

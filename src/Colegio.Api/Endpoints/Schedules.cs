@@ -14,6 +14,8 @@ public static class SchedulesEndpoints
         group.MapGet("/", GetAllSchedules);
         group.MapGet("/{id}", GetScheduleById);
         group.MapGet("/classroom/{classroomId}", GetSchedulesByClassroom);
+        group.MapGet("/teacher/{teacherId}", GetSchedulesByTeacher);
+        group.MapGet("/room/{roomId}", GetSchedulesByRoom);
         group.MapPost("/", CreateSchedule);
         group.MapPost("/generate", GenerateSchedule);
         group.MapPost("/generate-all", GenerateAllSchedules);
@@ -48,6 +50,32 @@ public static class SchedulesEndpoints
             .Include(s => s.Room)
             .FirstOrDefaultAsync(s => s.Id == id);
         return schedule is null ? Results.NotFound() : Results.Ok(schedule);
+    }
+
+    private static async Task<IResult> GetSchedulesByTeacher(ColegioDbContext db, Guid teacherId)
+    {
+        var schedules = await db.Schedules
+            .AsNoTracking()
+            .Where(s => s.TeacherId == teacherId)
+            .Include(s => s.Classroom)
+            .Include(s => s.Subject)
+            .Include(s => s.TimeSlot)
+            .Include(s => s.Room)
+            .ToListAsync();
+        return Results.Ok(schedules);
+    }
+
+    private static async Task<IResult> GetSchedulesByRoom(ColegioDbContext db, Guid roomId)
+    {
+        var schedules = await db.Schedules
+            .AsNoTracking()
+            .Where(s => s.RoomId == roomId)
+            .Include(s => s.Classroom)
+            .Include(s => s.Teacher)
+            .Include(s => s.Subject)
+            .Include(s => s.TimeSlot)
+            .ToListAsync();
+        return Results.Ok(schedules);
     }
 
     private static async Task<IResult> GetSchedulesByClassroom(ColegioDbContext db, Guid classroomId)

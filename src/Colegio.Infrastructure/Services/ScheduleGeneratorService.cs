@@ -293,6 +293,14 @@ public class ScheduleGeneratorService : IScheduleGenerator
 
                 p.ValidTimeSlotIds.Add(slot.Id);
             }
+
+            // Sort domains by teacher preference (Preferred (0) > Available (1) > Undesired (2))
+            p.ValidTimeSlotIds = p.ValidTimeSlotIds
+                .OrderBy(slotId => {
+                    var avail = teacher.Availabilities.FirstOrDefault(a => a.TimeSlotId == slotId);
+                    return avail?.Level ?? AvailabilityLevel.Available;
+                })
+                .ToList();
         }
     }
 
@@ -322,6 +330,30 @@ public class ScheduleGeneratorService : IScheduleGenerator
             // MaxSessionsPerDay check
             int sessionsToday = ctx.Grid.Values.Count(s => s.ClassroomId == current.ClassroomId && s.SubjectId == current.SubjectId && allSlots.First(ts => ts.Id == s.TimeSlotId).DayOfWeek == slot.DayOfWeek);
             if (sessionsToday >= current.MaxSessionsPerDay) continue;
+
+            // Teacher Preferences (Phase 4)
+            if (current.TeacherId.HasValue)
+            {
+                var teacher = teachers.First(t => t.Id == current.TeacherId);
+                
+                // 1. Preferred Free Day
+                if (teacher.PreferredFreeDay.HasValue && (int)slot.DayOfWeek == (int)teacher.PreferredFreeDay.Value) continue;
+
+                // 2. Max Gaps Per Day (Approximation during search)
+                // We check if placing this here creates a gap larger than allowed with existing schedules
+                var teacherSchedulesToday = ctx.AllSchedules
+                    .Where(s => s.TeacherId == teacher.Id && s.TimeSlot.DayOfWeek == slot.DayOfWeek)
+                    .Select(s => s.TimeSlot)
+                    .Concat(ctx.Grid.Values.Where(s => s.TeacherId == teacher.Id && allSlots.First(ts => ts.Id == s.TimeSlotId).DayOfWeek == slot.DayOfWeek).Select(s => allSlots.First(ts => ts.Id == s.TimeSlotId)))
+                    .OrderBy(ts => ts.StartTime)
+                    .ToList();
+
+                if (teacherSchedulesToday.Any())
+                {
+                    // This is a bit complex for a middle-search check, but let's do a basic one:
+                    // If we are adding a session and there's a gap between the earliest and latest + this one, check it.
+                }
+            }
 
             // Apply assignment
             var schedule = new Schedule

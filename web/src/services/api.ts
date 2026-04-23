@@ -20,6 +20,7 @@ export const teachersApi = {
   create: (data: any) => api.post('/teachers', data),
   update: (id: string, data: any) => api.put(`/teachers/${id}`, data),
   delete: (id: string) => api.delete(`/teachers/${id}`),
+  updateAvailability: (id: string, data: any[]) => api.put(`/teachers/${id}/availability`, data),
 }
 
 export const studentsApi = {
@@ -36,6 +37,14 @@ export const classroomsApi = {
   create: (data: any) => api.post('/classrooms', data),
   update: (id: string, data: any) => api.put(`/classrooms/${id}`, data),
   delete: (id: string) => api.delete(`/classrooms/${id}`),
+}
+
+export const roomsApi = {
+  getAll: () => api.get('/rooms'),
+  getById: (id: string) => api.get(`/rooms/${id}`),
+  create: (data: any) => api.post('/rooms', data),
+  update: (id: string, data: any) => api.put(`/rooms/${id}`, data),
+  delete: (id: string) => api.delete(`/rooms/${id}`),
 }
 
 export const invoicesApi = {
@@ -60,6 +69,8 @@ export const curriculumApi = {
 export const schedulesApi = {
   getAll: () => api.get('/schedules'),
   getByClassroom: (classroomId: string) => api.get(`/schedules/classroom/${classroomId}`),
+  getByTeacher: (teacherId: string) => api.get(`/schedules/teacher/${teacherId}`),
+  getByRoom: (roomId: string) => api.get(`/schedules/room/${roomId}`),
   generate: (classroomId: string, sessionType: number) => api.post(`/schedules/generate?classroomId=${classroomId}&sessionType=${sessionType}`),
   generateAll: (sessionType: number) => api.post(`/schedules/generate-all?sessionType=${sessionType}`),
   update: (id: string, data: any) => api.put(`/schedules/${id}`, data),

@@ -15,6 +15,12 @@ public class Teacher
     public DateTime HireDate { get; set; }
     public int MaxWorkingHours { get; set; }
 
+    // Scheduling Preferences (Phase 4)
+    public int MaxGapsPerDay { get; set; } = 1;
+    public int MinDailyHours { get; set; } = 2;
+    public bool PreferCompactSchedule { get; set; } = true;
+    public DayOfWeek? PreferredFreeDay { get; set; }
+
     [JsonIgnore]
     public ICollection<Classroom> TutoredClassrooms { get; set; } = new List<Classroom>();
     public ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();

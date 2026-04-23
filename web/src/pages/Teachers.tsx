@@ -6,27 +6,31 @@ import {
   Edit2, 
   Trash2, 
   BookOpen, 
-  Calendar,
+  GraduationCap,
+  ChevronRight,
+  Clock,
+  Settings2,
+  LayoutGrid,
+  Info,
   X,
   UserSquare2,
   Phone,
   Mail,
-  CreditCard,
-  User,
-  GraduationCap,
-  ChevronRight,
-  Cake,
-  Clock
+  User
 } from 'lucide-react'
-import { teachersApi } from '../services/api'
-import type { Teacher } from '../types'
+import { teachersApi, timeSlotsApi } from '../services/api'
+import type { Teacher, TimeSlot } from '../types'
+import TeacherAvailabilityGrid from '../components/TeacherAvailabilityGrid'
 
 export default function Teachers() {
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [showAvailability, setShowAvailability] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
   const [editing, setEditing] = useState<Teacher | null>(null)
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
+  
   const [form, setForm] = useState({ 
     firstName: '', 
     lastName: '', 
@@ -36,12 +40,17 @@ export default function Teachers() {
     iban: '', 
     dateOfBirth: '', 
     hireDate: '',
-    maxWorkingHours: 25
+    maxWorkingHours: 25,
+    maxGapsPerDay: 1,
+    minDailyHours: 2,
+    preferCompactSchedule: true,
+    preferredFreeDay: undefined as number | undefined
   })
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     loadTeachers()
+    loadTimeSlots()
   }, [])
 
   const loadTeachers = async () => {
@@ -49,10 +58,23 @@ export default function Teachers() {
     try {
       const res = await teachersApi.getAll()
       setTeachers(res.data)
+      if (selectedTeacher) {
+        const updated = res.data.find((t: Teacher) => t.id === selectedTeacher.id)
+        if (updated) setSelectedTeacher(updated)
+      }
     } catch (e) {
       console.error(e)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadTimeSlots = async () => {
+    try {
+      const res = await timeSlotsApi.getAll()
+      setTimeSlots(res.data)
+    } catch (e) {
+      console.error(e)
     }
   }
 
@@ -81,7 +103,11 @@ export default function Teachers() {
       iban: '', 
       dateOfBirth: '', 
       hireDate: '',
-      maxWorkingHours: 25
+      maxWorkingHours: 25,
+      maxGapsPerDay: 1,
+      minDailyHours: 2,
+      preferCompactSchedule: true,
+      preferredFreeDay: undefined
     })
     setShowForm(false)
     setEditing(null)
@@ -108,9 +134,13 @@ export default function Teachers() {
       email: teacher.email,
       phone: teacher.phone,
       iban: teacher.iban,
-      dateOfBirth: teacher.dateOfBirth.split('T')[0],
-      hireDate: teacher.hireDate.split('T')[0],
-      maxWorkingHours: teacher.maxWorkingHours
+      dateOfBirth: teacher.dateOfBirth?.split('T')[0] || '',
+      hireDate: teacher.hireDate?.split('T')[0] || '',
+      maxWorkingHours: teacher.maxWorkingHours,
+      maxGapsPerDay: teacher.maxGapsPerDay,
+      minDailyHours: teacher.minDailyHours,
+      preferCompactSchedule: teacher.preferCompactSchedule,
+      preferredFreeDay: teacher.preferredFreeDay
     })
     setShowForm(true)
   }
@@ -253,7 +283,7 @@ export default function Teachers() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="flex-1 glass-card p-0 overflow-hidden sticky top-6 max-h-[calc(100vh-160px)]"
+              className="flex-1 glass-card p-0 overflow-hidden sticky top-6 max-h-[calc(100vh-160px)] overflow-y-auto"
             >
               <div className="p-6 bg-gradient-to-br from-brand-600 to-indigo-700 text-white relative">
                 <button 
@@ -272,6 +302,16 @@ export default function Teachers() {
               </div>
               
               <div className="p-6 space-y-6">
+                <div className="flex flex-col gap-2">
+                   <button 
+                    onClick={() => setShowAvailability(true)}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-brand-50 text-brand-600 border border-brand-100 rounded-xl font-bold hover:bg-brand-100 transition-all shadow-sm"
+                  >
+                    <LayoutGrid size={18} />
+                    Configurar Disponibilidad
+                  </button>
+                </div>
+
                 <div className="space-y-4">
                   <h4 className="text-xs font-bold text-surface-400 uppercase tracking-widest">Información de Contacto</h4>
                   <div className="space-y-3">
@@ -291,36 +331,21 @@ export default function Teachers() {
                 </div>
 
                 <div className="space-y-4 pt-2 border-t border-surface-100">
-                  <h4 className="text-xs font-bold text-surface-400 uppercase tracking-widest">Datos Personales</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-sm text-surface-600">
-                      <div className="w-8 h-8 rounded-lg bg-surface-50 flex items-center justify-center text-surface-400">
-                        <Cake size={16} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-surface-400 uppercase font-bold">F. Nacimiento</span>
-                        <span>{new Date(selectedTeacher.dateOfBirth).toLocaleDateString('es-ES')}</span>
-                      </div>
+                  <h4 className="text-xs font-bold text-surface-400 uppercase tracking-widest">Preferencias de Horario</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-surface-50 rounded-xl">
+                      <span className="text-[10px] text-surface-400 uppercase font-black block mb-1">Huecos Máx/Día</span>
+                      <span className="text-sm font-bold text-surface-700">{selectedTeacher.maxGapsPerDay}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-surface-600">
-                      <div className="w-8 h-8 rounded-lg bg-surface-50 flex items-center justify-center text-surface-400">
-                        <Calendar size={16} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-surface-400 uppercase font-bold">F. Contratación</span>
-                        <span>{new Date(selectedTeacher.hireDate).toLocaleDateString('es-ES')}</span>
-                      </div>
+                    <div className="p-3 bg-surface-50 rounded-xl">
+                      <span className="text-[10px] text-surface-400 uppercase font-black block mb-1">Mín. Horas/Día</span>
+                      <span className="text-sm font-bold text-surface-700">{selectedTeacher.minDailyHours}h</span>
                     </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4 pt-2 border-t border-surface-100">
-                  <h4 className="text-xs font-bold text-surface-400 uppercase tracking-widest">Información Bancaria</h4>
-                  <div className="p-3 bg-surface-50 rounded-xl flex items-start gap-3">
-                    <CreditCard className="text-surface-400 mt-1" size={18} />
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-surface-400 uppercase font-bold">IBAN de Cobro</span>
-                      <span className="text-xs font-mono font-medium text-surface-700">{selectedTeacher.iban}</span>
+                    <div className="p-3 bg-surface-50 rounded-xl col-span-2 flex items-center justify-between">
+                      <span className="text-[10px] text-surface-400 uppercase font-black">Horario Compacto</span>
+                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${selectedTeacher.preferCompactSchedule ? 'bg-green-100 text-green-700' : 'bg-surface-200 text-surface-500'}`}>
+                        {selectedTeacher.preferCompactSchedule ? 'SÍ' : 'NO'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -340,6 +365,47 @@ export default function Teachers() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Availability Modal */}
+      <AnimatePresence>
+        {showAvailability && selectedTeacher && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+             <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAvailability(false)}
+              className="absolute inset-0 bg-surface-900/60 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl relative z-10 overflow-hidden h-[85vh] flex flex-col"
+            >
+              <div className="p-8 border-b border-surface-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-black text-surface-900">Disponibilidad: {selectedTeacher.firstName}</h3>
+                  <p className="text-surface-500 font-medium">Define las preferencias horarias del docente</p>
+                </div>
+                <button onClick={() => setShowAvailability(false)} className="p-3 bg-surface-100 hover:bg-surface-200 rounded-2xl transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-8">
+                <TeacherAvailabilityGrid 
+                  teacherId={selectedTeacher.id} 
+                  timeSlots={timeSlots} 
+                  onSave={() => {
+                    setShowAvailability(false)
+                    loadTeachers()
+                  }}
+                />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Form Modal */}
       <AnimatePresence>
@@ -372,8 +438,7 @@ export default function Teachers() {
                   <X size={20} />
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
-                {/* Basic Info */}
+              <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[75vh] overflow-y-auto">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
@@ -427,71 +492,93 @@ export default function Teachers() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5 col-span-2">
-                    <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
-                       <BookOpen size={14} className="text-surface-400" /> Especialidad
-                    </label>
-                    <input 
-                      value={form.specialty} 
-                      onChange={e => setForm({ ...form, specialty: e.target.value })} 
-                      placeholder="Ej. Matemáticas, Primaria, Inglés..." 
-                      className="input-field w-full" 
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
-                      <Cake size={14} className="text-surface-400" /> Fecha Nacimiento
-                    </label>
-                    <input 
-                      type="date"
-                      value={form.dateOfBirth} 
-                      onChange={e => setForm({ ...form, dateOfBirth: e.target.value })} 
-                      className="input-field w-full" 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
-                      <Calendar size={14} className="text-surface-400" /> Fecha Contratación
-                    </label>
-                    <input 
-                      type="date"
-                      value={form.hireDate} 
-                      onChange={e => setForm({ ...form, hireDate: e.target.value })} 
-                      className="input-field w-full" 
-                    />
-                  </div>
-                </div>
-
-                {/* Financial Info */}
-                <div className="space-y-1.5 pt-2 border-t border-surface-100">
+                <div className="space-y-1.5">
                   <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
-                    <CreditCard size={14} className="text-surface-400" /> Cuenta Bancaria (IBAN)
+                     <BookOpen size={14} className="text-surface-400" /> Especialidad
                   </label>
                   <input 
-                    value={form.iban} 
-                    onChange={e => setForm({ ...form, iban: e.target.value })} 
-                    placeholder="ES00 0000 0000 00 0000000000" 
-                    className="input-field w-full font-mono text-sm" 
-                  />
-                  <p className="text-[10px] text-surface-400">Información confidencial cifrada en base de datos.</p>
-                </div>
-
-                <div className="space-y-1.5 pt-2 border-t border-surface-100">
-                  <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
-                    <Clock size={14} className="text-surface-400" /> Carga Lectiva Máxima (Horas/Semana)
-                  </label>
-                  <input 
-                    type="number"
-                    value={form.maxWorkingHours} 
-                    onChange={e => setForm({ ...form, maxWorkingHours: parseInt(e.target.value) || 0 })} 
-                    placeholder="25" 
+                    value={form.specialty} 
+                    onChange={e => setForm({ ...form, specialty: e.target.value })} 
+                    placeholder="Ej. Matemáticas, Primaria, Inglés..." 
                     className="input-field w-full" 
                   />
-                  <p className="text-[10px] text-surface-400">Número de horas que el profesor puede impartir por semana.</p>
+                </div>
+
+                {/* Advanced Preferences */}
+                <div className="space-y-4 pt-4 border-t border-surface-100">
+                  <h4 className="text-sm font-black text-brand-600 uppercase tracking-widest flex items-center gap-2">
+                    <Settings2 size={16} /> Opciones Avanzadas de Horario
+                  </h4>
+                  
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                        <Clock size={14} className="text-surface-400" /> Carga Semanal (h)
+                      </label>
+                      <input 
+                        type="number"
+                        value={form.maxWorkingHours} 
+                        onChange={e => setForm({ ...form, maxWorkingHours: parseInt(e.target.value) || 0 })} 
+                        className="input-field w-full" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                        <LayoutGrid size={14} className="text-surface-400" /> Huecos Máx/Día
+                      </label>
+                      <input 
+                        type="number"
+                        value={form.maxGapsPerDay} 
+                        onChange={e => setForm({ ...form, maxGapsPerDay: parseInt(e.target.value) || 0 })} 
+                        className="input-field w-full" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-bold text-surface-700 flex items-center gap-2">
+                        <Clock size={14} className="text-surface-400" /> Mín. Horas/Día
+                      </label>
+                      <input 
+                        type="number"
+                        value={form.minDailyHours} 
+                        onChange={e => setForm({ ...form, minDailyHours: parseInt(e.target.value) || 0 })} 
+                        className="input-field w-full" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-bold text-surface-700">Día Libre Preferido</label>
+                      <select 
+                        value={form.preferredFreeDay ?? ''}
+                        onChange={e => setForm({ ...form, preferredFreeDay: e.target.value ? parseInt(e.target.value) : undefined })}
+                        className="input-field w-full"
+                      >
+                        <option value="">Cualquiera</option>
+                        <option value="0">Lunes</option>
+                        <option value="1">Martes</option>
+                        <option value="2">Miércoles</option>
+                        <option value="3">Jueves</option>
+                        <option value="4">Viernes</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-surface-50 rounded-2xl border border-surface-100">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white rounded-lg border border-surface-200">
+                        <Info size={16} className="text-brand-600" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-surface-900">Preferir Horario Compacto</span>
+                        <span className="text-[10px] text-surface-500">Minimiza huecos entre clases para evitar tiempos muertos</span>
+                      </div>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setForm({ ...form, preferCompactSchedule: !form.preferCompactSchedule })}
+                      className={`w-12 h-6 rounded-full transition-all relative ${form.preferCompactSchedule ? 'bg-brand-600' : 'bg-surface-300'}`}
+                    >
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${form.preferCompactSchedule ? 'left-7' : 'left-1'}`} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-6">
