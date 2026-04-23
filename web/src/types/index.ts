@@ -69,18 +69,20 @@ export interface Curriculum {
   }[]
 }
 
-export enum AcademicSessionType {
-  Standard = 0,
-  Intensive = 1
-}
+export type AcademicSessionType = 0 | 1;
+export const AcademicSession = {
+  Standard: 0,
+  Intensive: 1
+} as const;
 
-export enum DayOfWeek {
-  Monday = 0,
-  Tuesday = 1,
-  Wednesday = 2,
-  Thursday = 3,
-  Friday = 4
-}
+export type DayOfWeek = 0 | 1 | 2 | 3 | 4;
+export const Days = {
+  Monday: 0,
+  Tuesday: 1,
+  Wednesday: 2,
+  Thursday: 3,
+  Friday: 4
+} as const;
 
 export interface TimeSlot {
   id: string

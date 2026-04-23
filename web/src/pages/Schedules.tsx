@@ -11,13 +11,13 @@ import {
   Settings2
 } from 'lucide-react'
 import { classroomsApi, schedulesApi, timeSlotsApi } from '../services/api'
-import { Classroom, Schedule, TimeSlot, AcademicSessionType } from '../types'
+import { type Classroom, type Schedule, type TimeSlot, type AcademicSessionType, AcademicSession } from '../types'
 import TimetableGrid from '../components/TimetableGrid'
 
 export default function Schedules() {
   const [classrooms, setClassrooms] = useState<Classroom[]>([])
   const [selectedClassroom, setSelectedClassroom] = useState<string>('')
-  const [sessionType, setSessionType] = useState<AcademicSessionType>(AcademicSessionType.Standard)
+  const [sessionType, setSessionType] = useState<AcademicSessionType>(AcademicSession.Standard)
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(false)
@@ -167,9 +167,9 @@ export default function Schedules() {
             <label className="text-[10px] font-bold text-surface-400 uppercase tracking-wider mb-1">Periodo Académico</label>
             <div className="flex bg-surface-100 p-1 rounded-lg">
               <button 
-                onClick={() => setSessionType(AcademicSessionType.Standard)}
+                onClick={() => setSessionType(AcademicSession.Standard)}
                 className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  sessionType === AcademicSessionType.Standard 
+                  sessionType === AcademicSession.Standard 
                     ? 'bg-white text-brand-600 shadow-sm' 
                     : 'text-surface-500 hover:text-surface-700'
                 }`}
@@ -177,9 +177,9 @@ export default function Schedules() {
                 Estándar (Oct-May)
               </button>
               <button 
-                onClick={() => setSessionType(AcademicSessionType.Intensive)}
+                onClick={() => setSessionType(AcademicSession.Intensive)}
                 className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  sessionType === AcademicSessionType.Intensive 
+                  sessionType === AcademicSession.Intensive 
                     ? 'bg-white text-brand-600 shadow-sm' 
                     : 'text-surface-500 hover:text-surface-700'
                 }`}

@@ -67,11 +67,14 @@ public class ScheduleGeneratorService : IScheduleGenerator
             .Include(c => c.Subject)
             .ToListAsync();
 
-        var timeSlots = await _context.TimeSlots
+        var timeSlotsRaw = await _context.TimeSlots
             .Where(ts => ts.SessionType == sessionType)
+            .ToListAsync();
+
+        var timeSlots = timeSlotsRaw
             .OrderBy(ts => ts.DayOfWeek)
             .ThenBy(ts => ts.StartTime)
-            .ToListAsync();
+            .ToList();
 
         var teachers = await _context.Teachers
             .Include(t => t.Subjects)

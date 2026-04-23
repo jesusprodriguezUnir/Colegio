@@ -15,9 +15,13 @@ public static class TimeSlotsEndpoints
     {
         var slots = await db.TimeSlots
             .AsNoTracking()
+            .ToListAsync();
+            
+        var orderedSlots = slots
             .OrderBy(ts => ts.DayOfWeek)
             .ThenBy(ts => ts.StartTime)
-            .ToListAsync();
-        return Results.Ok(slots);
+            .ToList();
+
+        return Results.Ok(orderedSlots);
     }
 }

@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TimeSlot, Schedule, DayOfWeek } from '../types'
+import { type TimeSlot, type Schedule, type DayOfWeek, Days } from '../types'
 import { Lock, Unlock, User } from 'lucide-react'
 
 interface TimetableGridProps {
@@ -10,11 +10,11 @@ interface TimetableGridProps {
 }
 
 const DAYS = [
-  { value: DayOfWeek.Monday, label: 'Lunes' },
-  { value: DayOfWeek.Tuesday, label: 'Martes' },
-  { value: DayOfWeek.Wednesday, label: 'Miércoles' },
-  { value: DayOfWeek.Thursday, label: 'Jueves' },
-  { value: DayOfWeek.Friday, label: 'Viernes' },
+  { value: Days.Monday, label: 'Lunes' },
+  { value: Days.Tuesday, label: 'Martes' },
+  { value: Days.Wednesday, label: 'Miércoles' },
+  { value: Days.Thursday, label: 'Jueves' },
+  { value: Days.Friday, label: 'Viernes' },
 ]
 
 export default function TimetableGrid({ timeSlots, schedules, onToggleLock }: TimetableGridProps) {
@@ -67,7 +67,7 @@ export default function TimetableGrid({ timeSlots, schedules, onToggleLock }: Ti
                   if (isBreak) {
                     return (
                       <td key={day.value} className="p-2 bg-surface-50/30 text-center italic text-surface-400 text-xs">
-                        {day.value === DayOfWeek.Monday ? label : ''}
+                        {day.value === Days.Monday ? label : ''}
                       </td>
                     )
                   }

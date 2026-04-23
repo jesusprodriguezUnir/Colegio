@@ -16,7 +16,7 @@ import {
   Clock
 } from 'lucide-react'
 import { maintenanceApi, schedulesApi } from '../services/api'
-import { AcademicSessionType } from '../types'
+import { AcademicSession } from '../types'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -192,7 +192,7 @@ export default function Administration() {
                 <h4 className="text-xs font-bold text-brand-700 uppercase tracking-wider">Horarios de Prueba</h4>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <button 
-                    onClick={() => handleAction(() => schedulesApi.generateAll(AcademicSessionType.Standard), 'Horario estándar generado para todo el centro')}
+                    onClick={() => handleAction(() => schedulesApi.generateAll(AcademicSession.Standard), 'Horario estándar generado para todo el centro')}
                     disabled={actionLoading}
                     className="flex flex-col items-center gap-2 p-3 rounded-xl border border-brand-200 bg-white hover:bg-brand-50 text-brand-600 transition-all text-center"
                   >
@@ -200,7 +200,7 @@ export default function Administration() {
                     <span className="text-[10px] font-bold">Todo Oct-May</span>
                   </button>
                   <button 
-                    onClick={() => handleAction(() => schedulesApi.generateAll(AcademicSessionType.Intensive), 'Horario intensivo generado para todo el centro')}
+                    onClick={() => handleAction(() => schedulesApi.generateAll(AcademicSession.Intensive), 'Horario intensivo generado para todo el centro')}
                     disabled={actionLoading}
                     className="flex flex-col items-center gap-2 p-3 rounded-xl border border-brand-200 bg-white hover:bg-brand-50 text-brand-600 transition-all text-center"
                   >
