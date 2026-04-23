@@ -30,6 +30,8 @@ internal sealed class EngineContext
     public List<Schedule> AllSchedules { get; init; } = new(); // Global schedules for conflict checking
     public Dictionary<Guid, HashSet<Guid>> TeacherBusySlots { get; } = new(); // TeacherId → busy TimeSlotIds
     public Dictionary<Guid, HashSet<Guid>> RoomBusySlots { get; } = new();    // RoomId → busy TimeSlotIds
+    public Dictionary<Guid, HashSet<Guid>> ClassroomBusySlots { get; } = new(); // ClassroomId → busy TimeSlotIds
+    public Dictionary<Guid, TimeSlot> SlotDetails { get; init; } = new();     // TimeSlotId → TimeSlot
     
     public int Iterations { get; set; }
     public int BacktrackCount { get; set; }
