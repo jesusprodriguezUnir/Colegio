@@ -6,7 +6,6 @@ import {
   Edit2, 
   Trash2, 
   DoorOpen, 
-  School,
   X,
   UserSquare2,
   Users,
@@ -15,7 +14,7 @@ import {
   Layers
 } from 'lucide-react'
 import { classroomsApi } from '../services/api'
-import type { Classroom, Student } from '../types'
+import type { Classroom } from '../types'
 
 export default function Classrooms() {
   const [classrooms, setClassrooms] = useState<Classroom[]>([])
@@ -106,11 +105,11 @@ export default function Classrooms() {
     return 'bg-blue-50 text-blue-600 border-blue-100'
   }
 
-  const lineLabel = (l: string | number) => {
+  const lineLabel = (l: string | number): string => {
     if (l === 0 || l === '0' || l === 'A') return 'A'
     if (l === 1 || l === '1' || l === 'B') return 'B'
     if (l === 2 || l === '2' || l === 'C') return 'C'
-    return l
+    return String(l)
   }
 
   const filteredClassrooms = classrooms.filter(c => 

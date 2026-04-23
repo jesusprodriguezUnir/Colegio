@@ -23,6 +23,8 @@ public class ColegioDbContext : DbContext
     public DbSet<Curriculum> Curriculums => Set<Curriculum>();
     public DbSet<TimeSlot> TimeSlots => Set<TimeSlot>();
     public DbSet<TeacherAvailability> TeacherAvailabilities => Set<TeacherAvailability>();
+    public DbSet<Room> Rooms => Set<Room>();
+    public DbSet<ScheduleConstraint> ScheduleConstraints => Set<ScheduleConstraint>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -117,6 +119,10 @@ public class ColegioDbContext : DbContext
                 .WithMany(ts => ts.Schedules)
                 .HasForeignKey(e => e.TimeSlotId)
                 .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Room)
+                .WithMany(r => r.Schedules)
+                .HasForeignKey(e => e.RoomId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<TimeSlot>(entity =>
@@ -160,6 +166,11 @@ public class ColegioDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Color).HasMaxLength(20).HasDefaultValue("#6366f1");
+            entity.HasOne(e => e.RequiredRoom)
+                .WithMany()
+                .HasForeignKey(e => e.RequiredRoomId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Curriculum>(entity =>
@@ -168,6 +179,34 @@ public class ColegioDbContext : DbContext
             entity.HasOne(e => e.Subject)
                 .WithMany(s => s.Curriculums)
                 .HasForeignKey(e => e.SubjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Room>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Building).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<ScheduleConstraint>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Parameters).HasMaxLength(1000);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.Weight).HasDefaultValue(5);
+            entity.HasOne(e => e.Teacher)
+                .WithMany()
+                .HasForeignKey(e => e.TeacherId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Subject)
+                .WithMany()
+                .HasForeignKey(e => e.SubjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Classroom)
+                .WithMany()
+                .HasForeignKey(e => e.ClassroomId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

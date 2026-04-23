@@ -10,8 +10,7 @@ namespace Colegio.Api.Tests.IntegrationTests;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private static readonly string DbName = Guid.NewGuid().ToString();
-    private static readonly InMemoryDatabaseRoot DbRoot = new();
+    private readonly string _dbName = Guid.NewGuid().ToString();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -22,7 +21,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
 
             services.AddDbContext<ColegioDbContext>(options =>
-                options.UseInMemoryDatabase(DbName, DbRoot));
+                options.UseInMemoryDatabase(_dbName));
         });
     }
 }

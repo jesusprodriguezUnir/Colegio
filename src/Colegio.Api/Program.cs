@@ -73,6 +73,8 @@ app.MapInvoicesEndpoints();
 app.MapSchedulesEndpoints();
 app.MapTimeSlotsEndpoints();
 app.MapCurriculumEndpoints();
+app.MapRoomEndpoints();
+app.MapConstraintEndpoints();
 app.MapMaintenanceEndpoints();
 
 app.Run();

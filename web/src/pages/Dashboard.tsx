@@ -18,10 +18,7 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell
+  ResponsiveContainer
 } from 'recharts'
 import { schoolsApi, teachersApi, studentsApi, invoicesApi } from '../services/api'
 
@@ -57,7 +54,7 @@ const itemVariants = {
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ schools: 0, teachers: 0, students: 0, revenue: 0 })
-  const [loading, setLoading] = useState(true)
+  const [, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {

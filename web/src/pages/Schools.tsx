@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Plus, 
   Search, 
-  MoreHorizontal, 
   Edit2, 
   Trash2, 
   Phone, 

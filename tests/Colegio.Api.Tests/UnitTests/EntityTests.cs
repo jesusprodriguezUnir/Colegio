@@ -93,20 +93,25 @@ public class EntityTests
     }
 
     [Fact]
-    public void Schedule_ShouldHaveCorrectTimeProperties()
+    public void Schedule_ShouldHaveCorrectProperties()
     {
+        var subjectId = Guid.NewGuid();
+        var timeSlotId = Guid.NewGuid();
+
         var schedule = new Schedule
         {
             Id = Guid.NewGuid(),
             ClassroomId = Guid.NewGuid(),
             TeacherId = Guid.NewGuid(),
-            Subject = "Mathematics",
-            DayOfWeek = Domain.Entities.DayOfWeek.Monday,
-            StartTime = new TimeSpan(9, 0, 0),
-            EndTime = new TimeSpan(10, 0, 0)
+            SubjectId = subjectId,
+            TimeSlotId = timeSlotId,
+            IsLocked = false,
+            Type = ScheduleType.ClassUnit
         };
 
-        schedule.StartTime.Should().Be(new TimeSpan(9, 0, 0));
-        schedule.EndTime.Should().Be(new TimeSpan(10, 0, 0));
+        schedule.SubjectId.Should().Be(subjectId);
+        schedule.TimeSlotId.Should().Be(timeSlotId);
+        schedule.IsLocked.Should().BeFalse();
+        schedule.Type.Should().Be(ScheduleType.ClassUnit);
     }
 }

@@ -9,7 +9,7 @@ import Classrooms from './pages/Classrooms'
 import Invoices from './pages/Invoices'
 import Administration from './pages/Administration'
 import Schedules from './pages/Schedules'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 
 function App() {
   return (

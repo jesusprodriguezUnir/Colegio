@@ -1,6 +1,6 @@
-import React from 'react'
+
 import { motion, AnimatePresence } from 'framer-motion'
-import { type TimeSlot, type Schedule, type DayOfWeek, Days } from '../types'
+import { type TimeSlot, type Schedule, Days } from '../types'
 import { Lock, Unlock, User } from 'lucide-react'
 
 interface TimetableGridProps {

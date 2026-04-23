@@ -24,11 +24,13 @@ public static class SeedData
         SeedInvoices(context, items: (parents, students));
         
         var subjects = SeedSubjects(context);
+        var rooms = SeedRooms(context);
         SeedCurriculum(context, subjects);
         
         var timeSlots = SeedTimeSlots(context);
         SeedTeacherCompetencies(context, teachers, subjects);
         SeedTeacherAvailability(context, teachers, timeSlots);
+        SeedConstraints(context);
         
         SeedSchedules(context, classrooms, teachers, subjects, timeSlots);
 
@@ -251,10 +253,35 @@ public static class SeedData
             }
         }
     }
+    private static List<Room> SeedRooms(ColegioDbContext context)
+    {
+        var rooms = new List<Room>
+        {
+            new() { Id = Guid.NewGuid(), Name = "Laboratorio de Ciencias", Type = RoomType.Specific, Capacity = 30, Building = "Pabellón A", Floor = 1 },
+            new() { Id = Guid.NewGuid(), Name = "Gimnasio Polideportivo", Type = RoomType.Specific, Capacity = 60, Building = "Pabellón Deportivo", Floor = 0 },
+            new() { Id = Guid.NewGuid(), Name = "Aula de Música", Type = RoomType.Specific, Capacity = 25, Building = "Pabellón B", Floor = 2 },
+            new() { Id = Guid.NewGuid(), Name = "Aula de Informática", Type = RoomType.Specific, Capacity = 25, Building = "Pabellón B", Floor = 2 },
+            new() { Id = Guid.NewGuid(), Name = "Taller de Tecnología", Type = RoomType.Specific, Capacity = 20, Building = "Pabellón A", Floor = 0 }
+        };
+        context.Rooms.AddRange(rooms);
+        return rooms;
+    }
+
+    private static void SeedConstraints(ColegioDbContext context)
+    {
+        var constraints = new List<ScheduleConstraint>
+        {
+            new() { Id = Guid.NewGuid(), Type = ConstraintType.MaxDailyHours, Hardness = ConstraintHardness.Hard, Parameters = "{\"MaxHours\": 6}", IsActive = true, Description = "Máximo 6 horas lectivas diarias por profesor" },
+            new() { Id = Guid.NewGuid(), Type = ConstraintType.CompactSchedule, Hardness = ConstraintHardness.Soft, Weight = 8, IsActive = true, Description = "Intentar agrupar las horas del profesor sin huecos" },
+            new() { Id = Guid.NewGuid(), Type = ConstraintType.NonConsecutiveDays, Hardness = ConstraintHardness.Soft, Weight = 5, IsActive = true, Description = "Evitar misma asignatura en días consecutivos si es posible" }
+        };
+        context.ScheduleConstraints.AddRange(constraints);
+    }
 
     private static void SeedTeacherAvailability(ColegioDbContext context, List<Teacher> teachers, List<TimeSlot> timeSlots)
     {
         var availabilities = new List<TeacherAvailability>();
+        var random = new Random(42);
         foreach (var teacher in teachers)
         {
             foreach (var slot in timeSlots)
@@ -266,7 +293,8 @@ public static class SeedData
                     Id = Guid.NewGuid(),
                     TeacherId = teacher.Id,
                     TimeSlotId = slot.Id,
-                    IsAvailable = true
+                    IsAvailable = true,
+                    Level = random.Next(10) > 8 ? AvailabilityLevel.Preferred : AvailabilityLevel.Available
                 });
             }
         }
@@ -291,15 +319,37 @@ public static class SeedData
 
     private static Dictionary<string, Subject> SeedSubjects(ColegioDbContext context)
     {
-        var subjectNames = new[]
+        var subjectData = new[]
         {
-            "Lengua Castellana y Literatura", "Matemáticas", "Geografía e Historia", "Lengua Extranjera (Inglés)",
-            "Educación Física", "Biología y Geología", "Física y Química", "Tecnología y Digitalización",
-            "Ed. Plástica, Visual y Audiovisual", "Música", "Ed. en Valores Cívicos y Éticos", "Religión",
-            "Atención Educativa", "Materia Optativa", "Tutoría", "Filosofía", "Historia de la Filosofía", "Historia de España"
+            ("Lengua Castellana y Literatura", "#ef4444", (string?)null),
+            ("Matemáticas", "#3b82f6", (string?)null),
+            ("Geografía e Historia", "#f59e0b", (string?)null),
+            ("Lengua Extranjera (Inglés)", "#10b981", (string?)null),
+            ("Educación Física", "#ec4899", "Gimnasio Polideportivo"),
+            ("Biología y Geología", "#8b5cf6", "Laboratorio de Ciencias"),
+            ("Física y Química", "#6366f1", "Laboratorio de Ciencias"),
+            ("Tecnología y Digitalización", "#14b8a6", "Taller de Tecnología"),
+            ("Ed. Plástica, Visual y Audiovisual", "#f97316", (string?)null),
+            ("Música", "#06b6d4", "Aula de Música"),
+            ("Ed. en Valores Cívicos y Éticos", "#84cc16", (string?)null),
+            ("Religión", "#94a3b8", (string?)null),
+            ("Atención Educativa", "#94a3b8", (string?)null),
+            ("Materia Optativa", "#0ea5e9", (string?)null),
+            ("Tutoría", "#64748b", (string?)null),
+            ("Filosofía", "#d946ef", (string?)null),
+            ("Historia de la Filosofía", "#d946ef", (string?)null),
+            ("Historia de España", "#f43f5e", (string?)null)
         };
 
-        var subjects = subjectNames.Select(name => new Subject { Id = Guid.NewGuid(), Name = name }).ToDictionary(s => s.Name);
+        var rooms = context.Rooms.Local.ToList();
+        var subjects = subjectData.Select(s => new Subject 
+        { 
+            Id = Guid.NewGuid(), 
+            Name = s.Item1, 
+            Color = s.Item2,
+            RequiredRoomId = s.Item3 != null ? rooms.FirstOrDefault(r => r.Name == s.Item3)?.Id : null
+        }).ToDictionary(s => s.Name);
+
         context.Subjects.AddRange(subjects.Values);
         return subjects;
     }
@@ -431,6 +481,8 @@ public static class SeedData
         context.Subjects.RemoveRange(context.Subjects);
         context.TimeSlots.RemoveRange(context.TimeSlots);
         context.TeacherAvailabilities.RemoveRange(context.TeacherAvailabilities);
+        context.ScheduleConstraints.RemoveRange(context.ScheduleConstraints);
+        context.Rooms.RemoveRange(context.Rooms);
         context.Schools.RemoveRange(context.Schools);
 
         await context.SaveChangesAsync();

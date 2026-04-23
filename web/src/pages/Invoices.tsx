@@ -2,17 +2,12 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Plus, 
-  Search, 
   Edit2, 
   Trash2, 
   Receipt, 
-  Calendar,
   X,
-  CreditCard,
   CheckCircle2,
   AlertCircle,
-  Filter,
-  MoreVertical,
   Banknote
 } from 'lucide-react'
 import { invoicesApi } from '../services/api'
@@ -24,7 +19,7 @@ export default function Invoices() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Invoice | null>(null)
   const [filter, setFilter] = useState<'all' | 'Pending' | 'Paid'>('all')
-  const [form, setForm] = useState({ parentId: '', studentId: '', totalAmount: 350, concept: 'Monthly' as const })
+  const [form, setForm] = useState({ parentId: '', studentId: '', totalAmount: 350, concept: 'Monthly' as 'Monthly' | 'Lunch' | 'Extracurricular' })
 
   useEffect(() => {
     loadInvoices()

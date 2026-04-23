@@ -9,14 +9,19 @@ public static class SchedulesEndpoints
 {
     public static void MapSchedulesEndpoints(this WebApplication app)
     {
-        app.MapGet("/api/schedules", GetAllSchedules);
-        app.MapGet("/api/schedules/{id}", GetScheduleById);
-        app.MapGet("/api/schedules/classroom/{classroomId}", GetSchedulesByClassroom);
-        app.MapPost("/api/schedules", CreateSchedule);
-        app.MapPost("/api/schedules/generate", GenerateSchedule);
-        app.MapPost("/api/schedules/generate-all", GenerateAllSchedules);
-        app.MapPut("/api/schedules/{id}", UpdateSchedule);
-        app.MapDelete("/api/schedules/{id}", DeleteSchedule);
+        var group = app.MapGroup("/api/schedules").WithTags("Schedules");
+
+        group.MapGet("/", GetAllSchedules);
+        group.MapGet("/{id}", GetScheduleById);
+        group.MapGet("/classroom/{classroomId}", GetSchedulesByClassroom);
+        group.MapPost("/", CreateSchedule);
+        group.MapPost("/generate", GenerateSchedule);
+        group.MapPost("/generate-all", GenerateAllSchedules);
+        group.MapPost("/validate", ValidateSchedules);
+        group.MapGet("/score", GetScheduleScore);
+        group.MapGet("/debug/{classroomId}", DebugClassroomSchedule);
+        group.MapPut("/{id}", UpdateSchedule);
+        group.MapDelete("/{id}", DeleteSchedule);
     }
 
     private static async Task<IResult> GetAllSchedules(ColegioDbContext db)
@@ -27,6 +32,7 @@ public static class SchedulesEndpoints
             .Include(s => s.Teacher)
             .Include(s => s.Subject)
             .Include(s => s.TimeSlot)
+            .Include(s => s.Room)
             .ToListAsync();
         return Results.Ok(schedules);
     }
@@ -39,6 +45,7 @@ public static class SchedulesEndpoints
             .Include(s => s.Teacher)
             .Include(s => s.Subject)
             .Include(s => s.TimeSlot)
+            .Include(s => s.Room)
             .FirstOrDefaultAsync(s => s.Id == id);
         return schedule is null ? Results.NotFound() : Results.Ok(schedule);
     }
@@ -51,6 +58,7 @@ public static class SchedulesEndpoints
             .Include(s => s.Teacher)
             .Include(s => s.Subject)
             .Include(s => s.TimeSlot)
+            .Include(s => s.Room)
             .ToListAsync();
         return Results.Ok(schedules);
     }
@@ -78,22 +86,24 @@ public static class SchedulesEndpoints
 
             var result = await generator.GenerateAsync(classroomId, sessionType);
             
-            // Only add schedules that are not already in the database
-            var existingIds = await db.Schedules.Select(s => s.Id).ToListAsync();
-            var newSchedules = result.Where(r => !existingIds.Contains(r.Id)).ToList();
+            if (result.Success)
+            {
+                db.Schedules.AddRange(result.Schedules);
+                await db.SaveChangesAsync();
+
+                // Reload to get navigation properties for the UI
+                var finalResult = await db.Schedules
+                    .Include(s => s.Teacher)
+                    .Include(s => s.Subject)
+                    .Include(s => s.TimeSlot)
+                    .Include(s => s.Room)
+                    .Where(s => s.ClassroomId == classroomId && s.TimeSlot.SessionType == sessionType)
+                    .ToListAsync();
+
+                return Results.Ok(new { result.Score, result.Warnings, Schedules = finalResult });
+            }
             
-            db.Schedules.AddRange(newSchedules);
-            await db.SaveChangesAsync();
-
-            // Reload to get navigation properties for the UI
-            var finalResult = await db.Schedules
-                .Include(s => s.Teacher)
-                .Include(s => s.Subject)
-                .Include(s => s.TimeSlot)
-                .Where(s => s.ClassroomId == classroomId && s.TimeSlot.SessionType == sessionType)
-                .ToListAsync();
-
-            return Results.Ok(finalResult);
+            return Results.BadRequest(new { Error = "No se pudo generar el horario", result.Warnings });
         }
         catch (Exception ex)
         {
@@ -116,15 +126,33 @@ public static class SchedulesEndpoints
 
             var result = await generator.GenerateAllAsync(sessionType);
             
-            db.Schedules.AddRange(result);
+            db.Schedules.AddRange(result.Schedules);
             await db.SaveChangesAsync();
 
-            return Results.Ok(new { Count = result.Count, Message = "Schedules generated for all classrooms" });
+            return Results.Ok(new { Count = result.Schedules.Count, result.Score, result.Warnings, Message = "Schedules generated for all classrooms" });
         }
         catch (Exception ex)
         {
             return Results.BadRequest(new { Error = ex.Message });
         }
+    }
+
+    private static async Task<IResult> ValidateSchedules(IScheduleGenerator generator, AcademicSessionType sessionType)
+    {
+        var result = await generator.ValidateAsync(sessionType);
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> GetScheduleScore(IScheduleGenerator generator, AcademicSessionType sessionType)
+    {
+        var result = await generator.CalculateScoreAsync(sessionType);
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> DebugClassroomSchedule(IScheduleGenerator generator, Guid classroomId, AcademicSessionType sessionType)
+    {
+        var result = await generator.DebugConstraintsAsync(classroomId, sessionType);
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> UpdateSchedule(ColegioDbContext db, Guid id, Schedule updated)
@@ -137,6 +165,8 @@ public static class SchedulesEndpoints
         schedule.SubjectId = updated.SubjectId;
         schedule.TimeSlotId = updated.TimeSlotId;
         schedule.IsLocked = updated.IsLocked;
+        schedule.Type = updated.Type;
+        schedule.RoomId = updated.RoomId;
 
         db.Schedules.Update(schedule);
         await db.SaveChangesAsync();

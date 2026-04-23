@@ -6,7 +6,6 @@ import {
   UserSquare2, 
   DoorOpen, 
   Receipt,
-  Settings,
   Menu,
   ChevronLeft,
   ShieldCheck,

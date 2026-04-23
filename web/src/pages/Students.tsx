@@ -5,10 +5,7 @@ import {
   Search, 
   Edit2, 
   Trash2, 
-  GraduationCap, 
-  Calendar,
   X,
-  Users,
   Layout
 } from 'lucide-react'
 import { studentsApi } from '../services/api'
