@@ -75,6 +75,7 @@ app.MapTimeSlotsEndpoints();
 app.MapCurriculumEndpoints();
 app.MapRoomEndpoints();
 app.MapConstraintEndpoints();
+app.MapClassUnitEndpoints();
 app.MapMaintenanceEndpoints();
 
 app.Run();

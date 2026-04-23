@@ -18,6 +18,7 @@ public class Room
     public string? Building { get; set; }
     public int? Floor { get; set; }
     public string? Description { get; set; }
+    public string? AnonymousGroup { get; set; }  // For interchangeable rooms (e.g., "Aulas Planta 1")
 
     [JsonIgnore]
     public ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();

@@ -25,6 +25,7 @@ public class ColegioDbContext : DbContext
     public DbSet<TeacherAvailability> TeacherAvailabilities => Set<TeacherAvailability>();
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<ScheduleConstraint> ScheduleConstraints => Set<ScheduleConstraint>();
+    public DbSet<ClassUnit> ClassUnits => Set<ClassUnit>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -188,6 +189,28 @@ public class ColegioDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Building).HasMaxLength(100);
             entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.AnonymousGroup).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<ClassUnit>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Classroom)
+                .WithMany()
+                .HasForeignKey(e => e.ClassroomId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Subject)
+                .WithMany()
+                .HasForeignKey(e => e.SubjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Teacher)
+                .WithMany()
+                .HasForeignKey(e => e.TeacherId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.PreferredRoom)
+                .WithMany()
+                .HasForeignKey(e => e.PreferredRoomId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<ScheduleConstraint>(entity =>

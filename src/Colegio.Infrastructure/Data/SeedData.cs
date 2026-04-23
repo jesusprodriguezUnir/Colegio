@@ -32,6 +32,7 @@ public static class SeedData
         SeedTeacherAvailability(context, teachers, timeSlots);
         SeedConstraints(context);
         
+        SeedClassUnits(context, classrooms, subjects, teachers);
         SeedSchedules(context, classrooms, teachers, subjects, timeSlots);
 
         await context.SaveChangesAsync();
@@ -467,12 +468,62 @@ public static class SeedData
         list.Add(new Curriculum { Id = Guid.NewGuid(), GradeLevel = grade, SubjectId = subject.Id, WeeklyHours = hours });
     }
 
+    private static void SeedClassUnits(ColegioDbContext context, List<Classroom> classrooms, Dictionary<string, Subject> subjects, List<Teacher> teachers)
+    {
+        var classUnits = new List<ClassUnit>();
+        var curriculums = context.Curriculums.Local.ToList();
+        var random = new Random(42);
+
+        // Only generate for Primary and above (skip Infantil as per user decision)
+        var eligibleClassrooms = classrooms
+            .Where(c => c.GradeLevel >= GradeLevel.Primary3)
+            .ToList();
+
+        foreach (var classroom in eligibleClassrooms)
+        {
+            var gradeCurriculum = curriculums
+                .Where(c => c.GradeLevel == classroom.GradeLevel)
+                .ToList();
+
+            foreach (var entry in gradeCurriculum)
+            {
+                var subject = subjects.Values.FirstOrDefault(s => s.Id == entry.SubjectId);
+                if (subject == null) continue;
+
+                // Find a competent teacher for this subject
+                var competentTeacher = teachers
+                    .Where(t => t.Subjects.Any(s => s.Id == subject.Id))
+                    .OrderBy(_ => random.Next())
+                    .FirstOrDefault();
+
+                classUnits.Add(new ClassUnit
+                {
+                    Id = Guid.NewGuid(),
+                    ClassroomId = classroom.Id,
+                    SubjectId = subject.Id,
+                    TeacherId = competentTeacher?.Id,
+                    WeeklySessions = entry.WeeklyHours,
+                    SessionDuration = 1,
+                    AllowConsecutiveDays = true,
+                    PreferNonConsecutive = entry.WeeklyHours <= 3,
+                    AllowDoubleSession = entry.WeeklyHours >= 4,
+                    MaxSessionsPerDay = entry.WeeklyHours >= 6 ? 2 : 1,
+                    PreferredRoomId = subject.RequiredRoomId,
+                    IsActive = true
+                });
+            }
+        }
+
+        context.ClassUnits.AddRange(classUnits);
+    }
+
     public static async Task ClearAllDataAsync(ColegioDbContext context)
     {
         // El orden es importante para evitar violaciones de FK
         context.Invoices.RemoveRange(context.Invoices);
         context.StudentParents.RemoveRange(context.StudentParents);
         context.Schedules.RemoveRange(context.Schedules);
+        context.ClassUnits.RemoveRange(context.ClassUnits);
         context.Students.RemoveRange(context.Students);
         context.Classrooms.RemoveRange(context.Classrooms);
         context.Teachers.RemoveRange(context.Teachers);
@@ -500,7 +551,8 @@ public static class SeedData
             Schedules = await context.Schedules.CountAsync(),
             Invoices = await context.Invoices.CountAsync(),
             Subjects = await context.Subjects.CountAsync(),
-            CurriculumEntries = await context.Curriculums.CountAsync()
+            CurriculumEntries = await context.Curriculums.CountAsync(),
+            ClassUnits = await context.ClassUnits.CountAsync()
         };
     }
 }

@@ -105,3 +105,26 @@ export interface Schedule {
   subject?: Subject
   timeSlot?: TimeSlot
 }
+
+export interface ClassUnit {
+  id: string
+  classroomId: string
+  classroomName: string
+  gradeLevel: number
+  line: string
+  subjectId: string
+  subjectName: string
+  subjectColor: string
+  teacherId: string | null
+  teacherName: string | null
+  weeklySessions: number
+  sessionDuration: number
+  allowConsecutiveDays: boolean
+  preferNonConsecutive: boolean
+  allowDoubleSession: boolean
+  maxSessionsPerDay: number
+  preferredRoomId: string | null
+  preferredRoomName: string | null
+  simultaneousGroupId: string | null
+  isActive: boolean
+}

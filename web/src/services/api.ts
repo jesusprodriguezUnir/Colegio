@@ -68,3 +68,13 @@ export const schedulesApi = {
 export const timeSlotsApi = {
   getAll: () => api.get('/timeslots'),
 }
+
+export const classUnitsApi = {
+  getAll: () => api.get('/classunits'),
+  getById: (id: string) => api.get(`/classunits/${id}`),
+  getByClassroom: (classroomId: string) => api.get(`/classunits/classroom/${classroomId}`),
+  create: (data: any) => api.post('/classunits', data),
+  generateFromCurriculum: () => api.post('/classunits/generate-from-curriculum'),
+  update: (id: string, data: any) => api.put(`/classunits/${id}`, data),
+  delete: (id: string) => api.delete(`/classunits/${id}`),
+}

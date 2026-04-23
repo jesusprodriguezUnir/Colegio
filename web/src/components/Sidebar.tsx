@@ -9,7 +9,8 @@ import {
   Menu,
   ChevronLeft,
   ShieldCheck,
-  Calendar
+  Calendar,
+  BookOpen
 } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -21,6 +22,7 @@ const menuItems = [
   { path: '/students', icon: Users, label: 'Alumnos' },
   { path: '/classrooms', icon: DoorOpen, label: 'Aulas' },
   { path: '/schedules', icon: Calendar, label: 'Horarios' },
+  { path: '/classunits', icon: BookOpen, label: 'Unidades de Clase' },
   { path: '/invoices', icon: Receipt, label: 'Facturas' },
   { path: '/administration', icon: ShieldCheck, label: 'Administración' },
 ]
