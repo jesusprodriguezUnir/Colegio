@@ -56,3 +56,15 @@ export const curriculumApi = {
   getByGrade: (grade: string) => api.get(`/curriculum/${grade}`),
   getSubjects: () => api.get('/subjects'),
 }
+
+export const schedulesApi = {
+  getAll: () => api.get('/schedules'),
+  getByClassroom: (classroomId: string) => api.get(`/schedules/classroom/${classroomId}`),
+  generate: (classroomId: string, sessionType: number) => api.post(`/schedules/generate?classroomId=${classroomId}&sessionType=${sessionType}`),
+  generateAll: (sessionType: number) => api.post(`/schedules/generate-all?sessionType=${sessionType}`),
+  update: (id: string, data: any) => api.put(`/schedules/${id}`, data),
+}
+
+export const timeSlotsApi = {
+  getAll: () => api.get('/timeslots'),
+}

@@ -15,7 +15,8 @@ import {
   FileText,
   Clock
 } from 'lucide-react'
-import { maintenanceApi } from '../services/api'
+import { maintenanceApi, schedulesApi } from '../services/api'
+import { AcademicSessionType } from '../types'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -175,16 +176,43 @@ export default function Administration() {
             <h3 className="text-lg font-bold mb-2">Generación de Datos</h3>
             <p className="text-sm text-surface-500 mb-6">Genera un conjunto de datos estáticos para pruebas rápidas.</p>
             
-            <button 
-              onClick={() => handleAction(maintenanceApi.reset, 'Base de datos reiniciada con éxito')}
-              disabled={actionLoading}
-              className="w-full btn-primary py-4 flex items-center justify-center gap-2 group mb-4"
-            >
-              <RotateCcw className={`w-5 h-5 ${actionLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
-              {actionLoading ? 'Procesando...' : 'Reiniciar y Seedear'}
-            </button>
-            <p className="text-[11px] text-center text-surface-400 italic">
-              * Esto borrará todos los datos actuales y cargará los datos de prueba predefinidos.
+            <div className="space-y-4">
+              <button 
+                onClick={() => handleAction(maintenanceApi.reset, 'Base de datos reiniciada con éxito')}
+                disabled={actionLoading}
+                className="w-full btn-primary py-4 flex items-center justify-center gap-2 group"
+              >
+                <RotateCcw className={`w-5 h-5 ${actionLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+                {actionLoading ? 'Procesando...' : 'Reiniciar y Seedear'}
+              </button>
+
+              <div className="h-px bg-brand-100/50 my-4" />
+
+              <div className="flex flex-col gap-3">
+                <h4 className="text-xs font-bold text-brand-700 uppercase tracking-wider">Horarios de Prueba</h4>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <button 
+                    onClick={() => handleAction(() => schedulesApi.generateAll(AcademicSessionType.Standard), 'Horario estándar generado para todo el centro')}
+                    disabled={actionLoading}
+                    className="flex flex-col items-center gap-2 p-3 rounded-xl border border-brand-200 bg-white hover:bg-brand-50 text-brand-600 transition-all text-center"
+                  >
+                    <Calendar size={20} />
+                    <span className="text-[10px] font-bold">Todo Oct-May</span>
+                  </button>
+                  <button 
+                    onClick={() => handleAction(() => schedulesApi.generateAll(AcademicSessionType.Intensive), 'Horario intensivo generado para todo el centro')}
+                    disabled={actionLoading}
+                    className="flex flex-col items-center gap-2 p-3 rounded-xl border border-brand-200 bg-white hover:bg-brand-50 text-brand-600 transition-all text-center"
+                  >
+                    <Clock size={20} />
+                    <span className="text-[10px] font-bold">Todo Jun/Sep</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-center text-surface-400 italic mt-6">
+              * El reinicio borrará todo. La generación de horarios mantendrá lo bloqueado.
             </p>
           </motion.div>
 

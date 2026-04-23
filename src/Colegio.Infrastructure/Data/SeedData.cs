@@ -26,7 +26,11 @@ public static class SeedData
         var subjects = SeedSubjects(context);
         SeedCurriculum(context, subjects);
         
-        SeedSchedules(context, classrooms, teachers);
+        var timeSlots = SeedTimeSlots(context);
+        SeedTeacherCompetencies(context, teachers, subjects);
+        SeedTeacherAvailability(context, teachers, timeSlots);
+        
+        SeedSchedules(context, classrooms, teachers, subjects, timeSlots);
 
         await context.SaveChangesAsync();
     }
@@ -194,13 +198,93 @@ public static class SeedData
         };
         context.Invoices.AddRange(invoices);
     }
-    private static void SeedSchedules(ColegioDbContext context, List<Classroom> classrooms, List<Teacher> teachers)
+    private static List<TimeSlot> SeedTimeSlots(ColegioDbContext context)
     {
+        var timeSlots = new List<TimeSlot>();
+        var days = Enum.GetValues<Domain.Entities.DayOfWeek>();
+
+        foreach (var day in days)
+        {
+            // Standard Session (Oct-May)
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Standard, DayOfWeek = day, StartTime = new TimeSpan(9, 0, 0), EndTime = new TimeSpan(10, 0, 0), Label = "1ª Hora" });
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Standard, DayOfWeek = day, StartTime = new TimeSpan(10, 0, 0), EndTime = new TimeSpan(11, 0, 0), Label = "2ª Hora" });
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Standard, DayOfWeek = day, StartTime = new TimeSpan(11, 0, 0), EndTime = new TimeSpan(12, 0, 0), Label = "3ª Hora" });
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Standard, DayOfWeek = day, StartTime = new TimeSpan(12, 0, 0), EndTime = new TimeSpan(13, 0, 0), Label = "4ª Hora" });
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Standard, DayOfWeek = day, StartTime = new TimeSpan(13, 0, 0), EndTime = new TimeSpan(15, 0, 0), IsBreak = true, Label = "Comida" });
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Standard, DayOfWeek = day, StartTime = new TimeSpan(15, 0, 0), EndTime = new TimeSpan(16, 0, 0), Label = "5ª Hora" });
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Standard, DayOfWeek = day, StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(17, 0, 0), Label = "6ª Hora" });
+
+            // Intensive Session (Jun/Sep)
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Intensive, DayOfWeek = day, StartTime = new TimeSpan(9, 0, 0), EndTime = new TimeSpan(10, 0, 0), Label = "1ª Hora" });
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Intensive, DayOfWeek = day, StartTime = new TimeSpan(10, 0, 0), EndTime = new TimeSpan(11, 0, 0), Label = "2ª Hora" });
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Intensive, DayOfWeek = day, StartTime = new TimeSpan(11, 0, 0), EndTime = new TimeSpan(12, 0, 0), Label = "3ª Hora" });
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Intensive, DayOfWeek = day, StartTime = new TimeSpan(12, 0, 0), EndTime = new TimeSpan(13, 0, 0), Label = "4ª Hora" });
+            timeSlots.Add(new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Intensive, DayOfWeek = day, StartTime = new TimeSpan(13, 0, 0), EndTime = new TimeSpan(14, 0, 0), Label = "5ª Hora" });
+        }
+
+        context.TimeSlots.AddRange(timeSlots);
+        return timeSlots;
+    }
+
+    private static void SeedTeacherCompetencies(ColegioDbContext context, List<Teacher> teachers, Dictionary<string, Subject> subjects)
+    {
+        foreach (var teacher in teachers)
+        {
+            // Map specialty to subjects
+            if (teacher.Specialty == "Matemáticas") teacher.Subjects.Add(subjects["Matemáticas"]);
+            if (teacher.Specialty == "Lengua") teacher.Subjects.Add(subjects["Lengua Castellana y Literatura"]);
+            if (teacher.Specialty == "Ciencias") 
+            {
+                teacher.Subjects.Add(subjects["Biología y Geología"]);
+                teacher.Subjects.Add(subjects["Física y Química"]);
+            }
+            if (teacher.Specialty == "Educación Física") teacher.Subjects.Add(subjects["Educación Física"]);
+            if (teacher.Specialty == "Inglés") teacher.Subjects.Add(subjects["Lengua Extranjera (Inglés)"]);
+            if (teacher.Specialty == "Música") teacher.Subjects.Add(subjects["Música"]);
+            if (teacher.Specialty == "Artes") teacher.Subjects.Add(subjects["Ed. Plástica, Visual y Audiovisual"]);
+            
+            // Infantil/Primaria can teach almost anything basic
+            if (teacher.Specialty == "Educación Infantil")
+            {
+                teacher.Subjects.Add(subjects["Tutoría"]);
+                teacher.Subjects.Add(subjects["Religión"]);
+            }
+        }
+    }
+
+    private static void SeedTeacherAvailability(ColegioDbContext context, List<Teacher> teachers, List<TimeSlot> timeSlots)
+    {
+        var availabilities = new List<TeacherAvailability>();
+        foreach (var teacher in teachers)
+        {
+            foreach (var slot in timeSlots)
+            {
+                if (slot.IsBreak) continue;
+                
+                availabilities.Add(new TeacherAvailability
+                {
+                    Id = Guid.NewGuid(),
+                    TeacherId = teacher.Id,
+                    TimeSlotId = slot.Id,
+                    IsAvailable = true
+                });
+            }
+        }
+        context.TeacherAvailabilities.AddRange(availabilities);
+    }
+
+    private static void SeedSchedules(ColegioDbContext context, List<Classroom> classrooms, List<Teacher> teachers, Dictionary<string, Subject> subjects, List<TimeSlot> timeSlots)
+    {
+        var math = subjects["Matemáticas"];
+        var language = subjects["Lengua Castellana y Literatura"];
+        
+        var monday1 = timeSlots.First(ts => ts.DayOfWeek == Domain.Entities.DayOfWeek.Monday && ts.StartTime == new TimeSpan(9, 0, 0) && ts.SessionType == AcademicSessionType.Standard);
+        var monday2 = timeSlots.First(ts => ts.DayOfWeek == Domain.Entities.DayOfWeek.Monday && ts.StartTime == new TimeSpan(10, 0, 0) && ts.SessionType == AcademicSessionType.Standard);
+
         var schedules = new List<Schedule>
         {
-            new() { Id = Guid.NewGuid(), ClassroomId = classrooms[6].Id, TeacherId = teachers[1].Id, Subject = "Matemáticas", DayOfWeek = Domain.Entities.DayOfWeek.Monday, StartTime = new TimeSpan(9, 0, 0), EndTime = new TimeSpan(10, 0, 0) },
-            new() { Id = Guid.NewGuid(), ClassroomId = classrooms[6].Id, TeacherId = teachers[2].Id, Subject = "Lengua", DayOfWeek = Domain.Entities.DayOfWeek.Monday, StartTime = new TimeSpan(10, 0, 0), EndTime = new TimeSpan(11, 0, 0) },
-            new() { Id = Guid.NewGuid(), ClassroomId = classrooms[7].Id, TeacherId = teachers[3].Id, Subject = "Ciencias", DayOfWeek = Domain.Entities.DayOfWeek.Tuesday, StartTime = new TimeSpan(11, 30, 0), EndTime = new TimeSpan(12, 30, 0) }
+            new() { Id = Guid.NewGuid(), ClassroomId = classrooms[6].Id, TeacherId = teachers.First(t => t.Subjects.Contains(math)).Id, SubjectId = math.Id, TimeSlotId = monday1.Id },
+            new() { Id = Guid.NewGuid(), ClassroomId = classrooms[6].Id, TeacherId = teachers.First(t => t.Subjects.Contains(language)).Id, SubjectId = language.Id, TimeSlotId = monday2.Id }
         };
         context.Schedules.AddRange(schedules);
     }
@@ -223,6 +307,30 @@ public static class SeedData
     private static void SeedCurriculum(ColegioDbContext context, Dictionary<string, Subject> subjects)
     {
         var curriculum = new List<Curriculum>();
+
+        // Primary 3
+        AddEntry(curriculum, GradeLevel.Primary3, subjects["Lengua Castellana y Literatura"], 8);
+        AddEntry(curriculum, GradeLevel.Primary3, subjects["Matemáticas"], 6);
+        AddEntry(curriculum, GradeLevel.Primary3, subjects["Educación Física"], 3);
+        AddEntry(curriculum, GradeLevel.Primary3, subjects["Tutoría"], 1);
+
+        // Primary 4
+        AddEntry(curriculum, GradeLevel.Primary4, subjects["Lengua Castellana y Literatura"], 8);
+        AddEntry(curriculum, GradeLevel.Primary4, subjects["Matemáticas"], 6);
+        AddEntry(curriculum, GradeLevel.Primary4, subjects["Educación Física"], 3);
+        AddEntry(curriculum, GradeLevel.Primary4, subjects["Tutoría"], 1);
+
+        // Primary 5
+        AddEntry(curriculum, GradeLevel.Primary5, subjects["Lengua Castellana y Literatura"], 8);
+        AddEntry(curriculum, GradeLevel.Primary5, subjects["Matemáticas"], 6);
+        AddEntry(curriculum, GradeLevel.Primary5, subjects["Educación Física"], 3);
+        AddEntry(curriculum, GradeLevel.Primary5, subjects["Tutoría"], 1);
+
+        // Primary 6
+        AddEntry(curriculum, GradeLevel.Primary6, subjects["Lengua Castellana y Literatura"], 8);
+        AddEntry(curriculum, GradeLevel.Primary6, subjects["Matemáticas"], 6);
+        AddEntry(curriculum, GradeLevel.Primary6, subjects["Educación Física"], 3);
+        AddEntry(curriculum, GradeLevel.Primary6, subjects["Tutoría"], 1);
 
         // ESO 1
         AddEntry(curriculum, GradeLevel.ESO1, subjects["Lengua Castellana y Literatura"], 5);
@@ -321,6 +429,8 @@ public static class SeedData
         context.Parents.RemoveRange(context.Parents);
         context.Curriculums.RemoveRange(context.Curriculums);
         context.Subjects.RemoveRange(context.Subjects);
+        context.TimeSlots.RemoveRange(context.TimeSlots);
+        context.TeacherAvailabilities.RemoveRange(context.TeacherAvailabilities);
         context.Schools.RemoveRange(context.Schools);
 
         await context.SaveChangesAsync();

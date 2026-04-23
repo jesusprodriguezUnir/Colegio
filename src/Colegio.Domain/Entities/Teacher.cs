@@ -18,4 +18,6 @@ public class Teacher
     [JsonIgnore]
     public ICollection<Classroom> TutoredClassrooms { get; set; } = new List<Classroom>();
     public ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+    public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
+    public ICollection<TeacherAvailability> Availabilities { get; set; } = new List<TeacherAvailability>();
 }

@@ -9,7 +9,8 @@ import {
   Settings,
   Menu,
   ChevronLeft,
-  ShieldCheck
+  ShieldCheck,
+  Calendar
 } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -20,6 +21,7 @@ const menuItems = [
   { path: '/teachers', icon: UserSquare2, label: 'Profesores' },
   { path: '/students', icon: Users, label: 'Alumnos' },
   { path: '/classrooms', icon: DoorOpen, label: 'Aulas' },
+  { path: '/schedules', icon: Calendar, label: 'Horarios' },
   { path: '/invoices', icon: Receipt, label: 'Facturas' },
   { path: '/administration', icon: ShieldCheck, label: 'Administración' },
 ]

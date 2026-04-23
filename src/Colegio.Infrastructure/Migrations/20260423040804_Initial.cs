@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Colegio.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -33,13 +33,29 @@ namespace Colegio.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    CIF = table.Column<string>(type: "TEXT", nullable: false),
                     Address = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    City = table.Column<string>(type: "TEXT", nullable: false),
+                    PostalCode = table.Column<string>(type: "TEXT", nullable: false),
+                    Province = table.Column<string>(type: "TEXT", nullable: false),
                     ContactPhone = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
                     ContactEmail = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Schools", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Subjects",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Subjects", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -50,11 +66,53 @@ namespace Colegio.Infrastructure.Migrations
                     FirstName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     LastName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Specialty = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    HireDate = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Email = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Phone = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    IBAN = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    HireDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    MaxWorkingHours = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 25)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Teachers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TimeSlots",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    SessionType = table.Column<int>(type: "INTEGER", nullable: false),
+                    DayOfWeek = table.Column<int>(type: "INTEGER", nullable: false),
+                    StartTime = table.Column<TimeSpan>(type: "TEXT", nullable: false),
+                    EndTime = table.Column<TimeSpan>(type: "TEXT", nullable: false),
+                    IsBreak = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Label = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TimeSlots", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Curriculums",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    GradeLevel = table.Column<int>(type: "INTEGER", nullable: false),
+                    SubjectId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    WeeklyHours = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Curriculums", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Curriculums_Subjects_SubjectId",
+                        column: x => x.SubjectId,
+                        principalTable: "Subjects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -85,16 +143,65 @@ namespace Colegio.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SubjectTeacher",
+                columns: table => new
+                {
+                    SubjectsId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TeachersId = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SubjectTeacher", x => new { x.SubjectsId, x.TeachersId });
+                    table.ForeignKey(
+                        name: "FK_SubjectTeacher_Subjects_SubjectsId",
+                        column: x => x.SubjectsId,
+                        principalTable: "Subjects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SubjectTeacher_Teachers_TeachersId",
+                        column: x => x.TeachersId,
+                        principalTable: "Teachers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TeacherAvailabilities",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TeacherId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TimeSlotId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    IsAvailable = table.Column<bool>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TeacherAvailabilities", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TeacherAvailabilities_Teachers_TeacherId",
+                        column: x => x.TeacherId,
+                        principalTable: "Teachers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TeacherAvailabilities_TimeSlots_TimeSlotId",
+                        column: x => x.TimeSlotId,
+                        principalTable: "TimeSlots",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Schedules",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     ClassroomId = table.Column<Guid>(type: "TEXT", nullable: false),
                     TeacherId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Subject = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    DayOfWeek = table.Column<int>(type: "INTEGER", nullable: false),
-                    StartTime = table.Column<TimeSpan>(type: "TEXT", nullable: false),
-                    EndTime = table.Column<TimeSpan>(type: "TEXT", nullable: false)
+                    SubjectId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TimeSlotId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    IsLocked = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -106,9 +213,21 @@ namespace Colegio.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_Schedules_Subjects_SubjectId",
+                        column: x => x.SubjectId,
+                        principalTable: "Subjects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Schedules_Teachers_TeacherId",
                         column: x => x.TeacherId,
                         principalTable: "Teachers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Schedules_TimeSlots_TimeSlotId",
+                        column: x => x.TimeSlotId,
+                        principalTable: "TimeSlots",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -200,6 +319,11 @@ namespace Colegio.Infrastructure.Migrations
                 column: "TutorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Curriculums_SubjectId",
+                table: "Curriculums",
+                column: "SubjectId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Invoices_ParentId",
                 table: "Invoices",
                 column: "ParentId");
@@ -215,9 +339,19 @@ namespace Colegio.Infrastructure.Migrations
                 column: "ClassroomId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Schedules_SubjectId",
+                table: "Schedules",
+                column: "SubjectId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Schedules_TeacherId",
                 table: "Schedules",
                 column: "TeacherId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_TimeSlotId",
+                table: "Schedules",
+                column: "TimeSlotId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StudentParents_ParentId",
@@ -228,11 +362,29 @@ namespace Colegio.Infrastructure.Migrations
                 name: "IX_Students_ClassroomId",
                 table: "Students",
                 column: "ClassroomId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SubjectTeacher_TeachersId",
+                table: "SubjectTeacher",
+                column: "TeachersId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TeacherAvailabilities_TeacherId",
+                table: "TeacherAvailabilities",
+                column: "TeacherId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TeacherAvailabilities_TimeSlotId",
+                table: "TeacherAvailabilities",
+                column: "TimeSlotId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Curriculums");
+
             migrationBuilder.DropTable(
                 name: "Invoices");
 
@@ -243,10 +395,22 @@ namespace Colegio.Infrastructure.Migrations
                 name: "StudentParents");
 
             migrationBuilder.DropTable(
+                name: "SubjectTeacher");
+
+            migrationBuilder.DropTable(
+                name: "TeacherAvailabilities");
+
+            migrationBuilder.DropTable(
                 name: "Parents");
 
             migrationBuilder.DropTable(
                 name: "Students");
+
+            migrationBuilder.DropTable(
+                name: "Subjects");
+
+            migrationBuilder.DropTable(
+                name: "TimeSlots");
 
             migrationBuilder.DropTable(
                 name: "Classrooms");

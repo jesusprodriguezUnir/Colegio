@@ -8,6 +8,7 @@ import Students from './pages/Students'
 import Classrooms from './pages/Classrooms'
 import Invoices from './pages/Invoices'
 import Administration from './pages/Administration'
+import Schedules from './pages/Schedules'
 import { motion, AnimatePresence } from 'framer-motion'
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
               <Route path="/teachers" element={<Teachers />} />
               <Route path="/students" element={<Students />} />
               <Route path="/classrooms" element={<Classrooms />} />
+              <Route path="/schedules" element={<Schedules />} />
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/administration" element={<Administration />} />
             </Routes>

@@ -11,4 +11,5 @@ public class Subject
     public string Name { get; set; } = string.Empty;
 
     public ICollection<Curriculum> Curriculums { get; set; } = new List<Curriculum>();
+    public ICollection<Teacher> Teachers { get; set; } = new List<Teacher>();
 }

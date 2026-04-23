@@ -21,6 +21,8 @@ public class ColegioDbContext : DbContext
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<Subject> Subjects => Set<Subject>();
     public DbSet<Curriculum> Curriculums => Set<Curriculum>();
+    public DbSet<TimeSlot> TimeSlots => Set<TimeSlot>();
+    public DbSet<TeacherAvailability> TeacherAvailabilities => Set<TeacherAvailability>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -99,7 +101,6 @@ public class ColegioDbContext : DbContext
         modelBuilder.Entity<Schedule>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Subject).IsRequired().HasMaxLength(200);
             entity.HasOne(e => e.Classroom)
                 .WithMany(c => c.Schedules)
                 .HasForeignKey(e => e.ClassroomId)
@@ -108,7 +109,38 @@ public class ColegioDbContext : DbContext
                 .WithMany(t => t.Schedules)
                 .HasForeignKey(e => e.TeacherId)
                 .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Subject)
+                .WithMany()
+                .HasForeignKey(e => e.SubjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.TimeSlot)
+                .WithMany(ts => ts.Schedules)
+                .HasForeignKey(e => e.TimeSlotId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<TimeSlot>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Label).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<TeacherAvailability>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Teacher)
+                .WithMany(t => t.Availabilities)
+                .HasForeignKey(e => e.TeacherId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.TimeSlot)
+                .WithMany(ts => ts.Availabilities)
+                .HasForeignKey(e => e.TimeSlotId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Teacher>()
+            .HasMany(t => t.Subjects)
+            .WithMany(s => s.Teachers);
 
         modelBuilder.Entity<Invoice>(entity =>
         {

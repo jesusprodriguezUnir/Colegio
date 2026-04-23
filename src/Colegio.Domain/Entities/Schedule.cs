@@ -16,13 +16,16 @@ public class Schedule
     public Guid Id { get; set; }
     public Guid ClassroomId { get; set; }
     public Guid TeacherId { get; set; }
-    public string Subject { get; set; } = string.Empty;
-    public DayOfWeek DayOfWeek { get; set; }
-    public TimeSpan StartTime { get; set; }
-    public TimeSpan EndTime { get; set; }
+    public Guid SubjectId { get; set; }
+    public Guid TimeSlotId { get; set; }
+    public bool IsLocked { get; set; }
 
     [JsonIgnore]
     public Classroom Classroom { get; set; } = null!;
     [JsonIgnore]
     public Teacher Teacher { get; set; } = null!;
+    [JsonIgnore]
+    public Subject Subject { get; set; } = null!;
+    [JsonIgnore]
+    public TimeSlot TimeSlot { get; set; } = null!;
 }

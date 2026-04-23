@@ -68,3 +68,38 @@ export interface Curriculum {
     weeklyHours: number
   }[]
 }
+
+export enum AcademicSessionType {
+  Standard = 0,
+  Intensive = 1
+}
+
+export enum DayOfWeek {
+  Monday = 0,
+  Tuesday = 1,
+  Wednesday = 2,
+  Thursday = 3,
+  Friday = 4
+}
+
+export interface TimeSlot {
+  id: string
+  sessionType: AcademicSessionType
+  dayOfWeek: DayOfWeek
+  startTime: string
+  endTime: string
+  isBreak: boolean
+  label: string
+}
+
+export interface Schedule {
+  id: string
+  classroomId: string
+  teacherId: string
+  subjectId: string
+  timeSlotId: string
+  isLocked: boolean
+  teacher?: Teacher
+  subject?: Subject
+  timeSlot?: TimeSlot
+}

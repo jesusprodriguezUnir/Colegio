@@ -148,28 +148,27 @@ namespace Colegio.Infrastructure.Migrations
                     b.Property<Guid>("ClassroomId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DayOfWeek")
+                    b.Property<bool>("IsLocked")
                         .HasColumnType("INTEGER");
 
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(200)
+                    b.Property<Guid>("SubjectId")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("TeacherId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TimeSlotId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ClassroomId");
 
+                    b.HasIndex("SubjectId");
+
                     b.HasIndex("TeacherId");
+
+                    b.HasIndex("TimeSlotId");
 
                     b.ToTable("Schedules");
                 });
@@ -336,6 +335,76 @@ namespace Colegio.Infrastructure.Migrations
                     b.ToTable("Teachers");
                 });
 
+            modelBuilder.Entity("Colegio.Domain.Entities.TeacherAvailability", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TimeSlotId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeacherId");
+
+                    b.HasIndex("TimeSlotId");
+
+                    b.ToTable("TeacherAvailabilities");
+                });
+
+            modelBuilder.Entity("Colegio.Domain.Entities.TimeSlot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsBreak")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SessionType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TimeSlots");
+                });
+
+            modelBuilder.Entity("SubjectTeacher", b =>
+                {
+                    b.Property<Guid>("SubjectsId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TeachersId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("SubjectsId", "TeachersId");
+
+                    b.HasIndex("TeachersId");
+
+                    b.ToTable("SubjectTeacher");
+                });
+
             modelBuilder.Entity("Colegio.Domain.Entities.Classroom", b =>
                 {
                     b.HasOne("Colegio.Domain.Entities.School", "School")
@@ -392,15 +461,31 @@ namespace Colegio.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Colegio.Domain.Entities.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Colegio.Domain.Entities.Teacher", "Teacher")
                         .WithMany("Schedules")
                         .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Colegio.Domain.Entities.TimeSlot", "TimeSlot")
+                        .WithMany("Schedules")
+                        .HasForeignKey("TimeSlotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Classroom");
 
+                    b.Navigation("Subject");
+
                     b.Navigation("Teacher");
+
+                    b.Navigation("TimeSlot");
                 });
 
             modelBuilder.Entity("Colegio.Domain.Entities.Student", b =>
@@ -431,6 +516,40 @@ namespace Colegio.Infrastructure.Migrations
                     b.Navigation("Parent");
 
                     b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("Colegio.Domain.Entities.TeacherAvailability", b =>
+                {
+                    b.HasOne("Colegio.Domain.Entities.Teacher", "Teacher")
+                        .WithMany("Availabilities")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Colegio.Domain.Entities.TimeSlot", "TimeSlot")
+                        .WithMany("Availabilities")
+                        .HasForeignKey("TimeSlotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Teacher");
+
+                    b.Navigation("TimeSlot");
+                });
+
+            modelBuilder.Entity("SubjectTeacher", b =>
+                {
+                    b.HasOne("Colegio.Domain.Entities.Subject", null)
+                        .WithMany()
+                        .HasForeignKey("SubjectsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Colegio.Domain.Entities.Teacher", null)
+                        .WithMany()
+                        .HasForeignKey("TeachersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Colegio.Domain.Entities.Classroom", b =>
@@ -466,9 +585,18 @@ namespace Colegio.Infrastructure.Migrations
 
             modelBuilder.Entity("Colegio.Domain.Entities.Teacher", b =>
                 {
+                    b.Navigation("Availabilities");
+
                     b.Navigation("Schedules");
 
                     b.Navigation("TutoredClassrooms");
+                });
+
+            modelBuilder.Entity("Colegio.Domain.Entities.TimeSlot", b =>
+                {
+                    b.Navigation("Availabilities");
+
+                    b.Navigation("Schedules");
                 });
 #pragma warning restore 612, 618
         }

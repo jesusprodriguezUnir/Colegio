@@ -1,5 +1,7 @@
 using Colegio.Api.Endpoints;
+using Colegio.Domain.Services;
 using Colegio.Infrastructure.Data;
+using Colegio.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +18,7 @@ builder.Services.AddDbContext<ColegioDbContext>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IScheduleGenerator, ScheduleGeneratorService>();
 
 builder.Services.AddCors(options =>
 {
@@ -33,8 +36,24 @@ app.UseCors();
 
 using var scope = app.Services.CreateScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<ColegioDbContext>();
-await dbContext.Database.EnsureCreatedAsync();
-await SeedData.SeedAsync(dbContext);
+
+if (args.Contains("--migrate"))
+{
+    await dbContext.Database.MigrateAsync();
+}
+else
+{
+    await dbContext.Database.EnsureCreatedAsync();
+}
+
+bool forceSeed = args.Contains("--seed-force");
+await SeedData.SeedAsync(dbContext, forceSeed);
+
+if (args.Contains("--seed-only"))
+{
+    Console.WriteLine("Seeding completed. Exiting...");
+    return;
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -52,6 +71,7 @@ app.MapStudentsEndpoints();
 app.MapParentsEndpoints();
 app.MapInvoicesEndpoints();
 app.MapSchedulesEndpoints();
+app.MapTimeSlotsEndpoints();
 app.MapCurriculumEndpoints();
 app.MapMaintenanceEndpoints();
 
