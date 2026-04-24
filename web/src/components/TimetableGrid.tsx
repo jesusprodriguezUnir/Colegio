@@ -11,7 +11,7 @@ import {
   type DragEndEvent
 } from '@dnd-kit/core'
 import { type TimeSlot, type Schedule, Days } from '../types'
-import { Lock, Unlock, User, School, MapPin, RefreshCw } from 'lucide-react'
+import { Lock, Unlock, User, School, MapPin, RefreshCw, Calendar, Clock } from 'lucide-react'
 
 interface TimetableGridProps {
   timeSlots: TimeSlot[]
@@ -23,11 +23,11 @@ interface TimetableGridProps {
 }
 
 const DAYS = [
-  { value: Days.Monday, label: 'Lunes' },
-  { value: Days.Tuesday, label: 'Martes' },
-  { value: Days.Wednesday, label: 'Miércoles' },
-  { value: Days.Thursday, label: 'Jueves' },
-  { value: Days.Friday, label: 'Viernes' },
+  { value: Days.Monday, label: 'Lunes', short: 'LUN' },
+  { value: Days.Tuesday, label: 'Martes', short: 'MAR' },
+  { value: Days.Wednesday, label: 'Miércoles', short: 'MIÉ' },
+  { value: Days.Thursday, label: 'Jueves', short: 'JUE' },
+  { value: Days.Friday, label: 'Viernes', short: 'VIE' },
 ]
 
 export default function TimetableGrid({ 
@@ -60,98 +60,139 @@ export default function TimetableGrid({
 
   if (timeSlots.length === 0) {
     return (
-      <div className="p-12 text-center border-2 border-dashed border-surface-200 rounded-3xl bg-white">
-        <p className="text-surface-500 font-medium italic">No hay bloques horarios definidos para esta sesión.</p>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-16 text-center border-2 border-dashed border-surface-200 rounded-[3rem] bg-white/50 backdrop-blur-xl shadow-inner"
+      >
+        <div className="bg-surface-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <Calendar className="text-surface-400" size={32} />
+        </div>
+        <h3 className="text-xl font-bold text-surface-900 mb-2">No hay horarios definidos</h3>
+        <p className="text-surface-500 max-w-xs mx-auto">Selecciona un aula y un tipo de sesión para visualizar o generar el horario.</p>
+      </motion.div>
     )
   }
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className={`overflow-x-auto rounded-[2.5rem] border border-surface-200 bg-white shadow-2xl shadow-surface-200/50 transition-opacity ${loading ? 'opacity-50' : 'opacity-100'}`}>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-surface-50/50 border-b border-surface-200">
-              <th className="p-6 text-left text-[10px] font-black text-surface-400 uppercase tracking-[0.2em] w-32 border-r border-surface-100 bg-surface-50/30 backdrop-blur-md sticky left-0 z-20">
-                Hora
-              </th>
-              {DAYS.map(day => (
-                <th key={day.value} className="p-6 text-center text-[10px] font-black text-surface-400 uppercase tracking-[0.2em] min-w-[220px]">
-                  {day.label}
+      <div className={`relative overflow-hidden rounded-[2.5rem] border border-white/40 bg-white/40 backdrop-blur-2xl shadow-2xl shadow-surface-200/50 transition-all duration-500 ${loading ? 'scale-[0.99] opacity-70' : 'scale-100 opacity-100'}`}>
+        <div className="overflow-x-auto">
+          <table className="w-full border-separate border-spacing-0">
+            <thead>
+              <tr>
+                <th className="p-8 text-left border-b border-surface-100 bg-white/60 sticky left-0 z-30 backdrop-blur-xl min-w-[140px]">
+                  <div className="flex items-center gap-2 text-surface-400">
+                    <Clock size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Horario</span>
+                  </div>
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="relative min-h-[400px]">
-            {loading && (
-              <tr className="absolute inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-[2px]">
-                <td colSpan={6} className="flex items-center justify-center w-full h-full">
-                  <RefreshCw className="animate-spin text-brand-600" size={40} />
-                </td>
-              </tr>
-            )}
-            
-            {uniqueTimeRanges.map(time => {
-              const rowSlots = timeSlots.filter(ts => ts.startTime === time)
-              const firstSlot = rowSlots[0]
-              const label = firstSlot?.label || time.substring(0, 5)
-              const isBreak = firstSlot?.isBreak
-
-              return (
-                <tr key={time} className="border-b border-surface-50 last:border-0 group/row">
-                  <td className="p-5 text-sm font-medium text-surface-700 bg-surface-50/30 border-r border-surface-100 sticky left-0 z-20 backdrop-blur-md group-hover/row:bg-surface-50 transition-colors">
-                    <div className="flex flex-col">
-                      <span className="text-brand-600 font-black text-base">{label}</span>
-                      <span className="text-[10px] text-surface-400 font-bold uppercase tracking-wider mt-1 opacity-70">
-                        {time.substring(0, 5)} - {firstSlot?.endTime.substring(0, 5)}
-                      </span>
+                {DAYS.map(day => (
+                  <th key={day.value} className="p-8 text-center border-b border-surface-100 bg-white/40 backdrop-blur-xl min-w-[240px]">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-[10px] font-black text-brand-600 uppercase tracking-[0.3em]">{day.short}</span>
+                      <span className="text-lg font-bold text-surface-900">{day.label}</span>
                     </div>
-                  </td>
-                  {DAYS.map(day => {
-                    const slot = rowSlots.find(ts => ts.dayOfWeek === day.value)
-                    const schedule = slot ? schedules.find(s => s.timeSlotId === slot.id) : null
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="relative">
+              <AnimatePresence>
+                {loading && (
+                  <motion.tr 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-50 flex items-center justify-center bg-white/20 backdrop-blur-md"
+                  >
+                    <td colSpan={6} className="flex items-center justify-center w-full h-full min-h-[400px]">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="relative">
+                          <div className="w-16 h-16 rounded-full border-4 border-brand-100 border-t-brand-600 animate-spin" />
+                          <RefreshCw className="absolute inset-0 m-auto text-brand-600 animate-pulse" size={24} />
+                        </div>
+                        <span className="text-sm font-bold text-brand-900 animate-pulse">Optimizando Horarios...</span>
+                      </div>
+                    </td>
+                  </motion.tr>
+                )}
+              </AnimatePresence>
+              
+              {uniqueTimeRanges.map((time, idx) => {
+                const rowSlots = timeSlots.filter(ts => ts.startTime === time)
+                const firstSlot = rowSlots[0]
+                const label = firstSlot?.label || `${idx + 1}ª Hora`
+                const isBreak = firstSlot?.isBreak
 
-                    if (isBreak) {
+                return (
+                  <tr key={time} className="group/row">
+                    <td className="p-6 text-sm font-medium border-r border-surface-50 bg-white/60 sticky left-0 z-20 backdrop-blur-xl group-hover/row:bg-brand-50/30 transition-colors">
+                      <div className="flex flex-col">
+                        <span className="text-brand-600 font-black text-lg leading-tight">{label}</span>
+                        <div className="flex items-center gap-1.5 mt-2">
+                          <span className="px-2 py-0.5 rounded-md bg-surface-100 text-[10px] font-black text-surface-500 uppercase">
+                            {time.substring(0, 5)}
+                          </span>
+                          <div className="w-1 h-[1px] bg-surface-200" />
+                          <span className="px-2 py-0.5 rounded-md bg-surface-100 text-[10px] font-black text-surface-500 uppercase">
+                            {firstSlot?.endTime.substring(0, 5)}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    {DAYS.map(day => {
+                      const slot = rowSlots.find(ts => ts.dayOfWeek === day.value)
+                      const schedule = slot ? schedules.find(s => s.timeSlotId === slot.id) : null
+
+                      if (isBreak) {
+                        return (
+                          <td key={day.value} className="p-3 bg-surface-50/30">
+                            <div className="h-full w-full flex items-center justify-center py-6 bg-white/40 rounded-3xl border border-surface-200/50 shadow-inner">
+                              <span className="text-[10px] font-black text-surface-300 uppercase tracking-[0.4em]">
+                                {day.value === Days.Wednesday ? label : ''}
+                              </span>
+                            </div>
+                          </td>
+                        )
+                      }
+
                       return (
-                        <td key={day.value} className="p-2 bg-surface-50/20">
-                          <div className="h-full w-full flex items-center justify-center py-4 bg-surface-50/40 rounded-2xl border border-surface-100/50">
-                            <span className="text-[10px] font-black text-surface-300 uppercase tracking-[0.3em]">{day.value === Days.Wednesday ? label : ''}</span>
-                          </div>
+                        <td key={day.value} className="p-3 align-top">
+                          {slot && <DroppableSlot id={slot.id}>
+                            <AnimatePresence mode="popLayout">
+                              {schedule ? (
+                                <DraggableSchedule 
+                                  key={schedule.id}
+                                  schedule={schedule} 
+                                  onToggleLock={onToggleLock}
+                                  viewMode={viewMode}
+                                />
+                              ) : (
+                                <div className="h-32 w-full rounded-[2rem] border-2 border-dashed border-surface-100 flex items-center justify-center text-surface-300 hover:border-brand-200 hover:bg-brand-50/50 hover:text-brand-400 transition-all duration-300 group/empty">
+                                  <div className="flex flex-col items-center gap-2 opacity-0 group-hover/empty:opacity-100 transition-opacity">
+                                    <div className="p-2 rounded-xl bg-brand-100/50">
+                                      <Calendar size={16} />
+                                    </div>
+                                    <span className="text-[10px] uppercase font-black tracking-[0.2em]">Asignar</span>
+                                  </div>
+                                </div>
+                              )}
+                            </AnimatePresence>
+                          </DroppableSlot>}
                         </td>
                       )
-                    }
-
-                    return (
-                      <td key={day.value} className="p-2 align-top">
-                        {slot && <DroppableSlot id={slot.id}>
-                          <AnimatePresence mode="popLayout">
-                            {schedule ? (
-                              <DraggableSchedule 
-                                key={schedule.id}
-                                schedule={schedule} 
-                                onToggleLock={onToggleLock}
-                                viewMode={viewMode}
-                              />
-                            ) : (
-                              <div className="h-24 w-full rounded-2xl border-2 border-dashed border-surface-100 flex items-center justify-center text-surface-200 hover:border-brand-200 hover:bg-brand-50/30 transition-all group/empty">
-                                <span className="text-[10px] uppercase font-black tracking-[0.2em] group-hover/empty:text-brand-400 transition-colors">Vacío</span>
-                              </div>
-                            )}
-                          </AnimatePresence>
-                        </DroppableSlot>}
-                      </td>
-                    )
-                  })}
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                    })}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
       
-      {/* Visual helper for dragging */}
       <DragOverlay dropAnimation={null}>
-        {/* We can render a simplified preview of the dragged item here if needed */}
+        {/* Simplified preview could go here */}
       </DragOverlay>
     </DndContext>
   )
@@ -169,6 +210,8 @@ function DraggableSchedule({ schedule, onToggleLock, viewMode }: { schedule: Sch
     cursor: 'grabbing'
   } : undefined
 
+  const subjectColor = (schedule.subject as any)?.color || '#6366f1'
+
   return (
     <motion.div
       ref={setNodeRef}
@@ -177,22 +220,33 @@ function DraggableSchedule({ schedule, onToggleLock, viewMode }: { schedule: Sch
       {...attributes}
       layoutId={schedule.id}
       initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: isDragging ? 0.5 : 1 }}
+      animate={{ 
+        scale: 1, 
+        opacity: isDragging ? 0.5 : 1,
+        y: isDragging ? -10 : 0
+      }}
       exit={{ scale: 0.9, opacity: 0 }}
-      className={`group relative p-4 rounded-2xl border-2 transition-all h-full min-h-[100px] flex flex-col justify-between select-none ${
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      className={`group relative p-5 rounded-[2rem] border-2 transition-all h-full min-h-[120px] flex flex-col justify-between shadow-sm overflow-hidden ${
         schedule.isLocked 
-          ? 'bg-amber-50/80 border-amber-200/50 shadow-sm' 
-          : 'bg-white border-brand-100 hover:border-brand-300 hover:shadow-xl hover:shadow-brand-500/10 active:scale-95 cursor-grab'
+          ? 'bg-amber-50/50 border-amber-200/30' 
+          : 'bg-white border-surface-100 hover:border-brand-200 hover:shadow-2xl hover:shadow-brand-500/10 cursor-grab active:cursor-grabbing'
       }`}
     >
-      <div className="flex flex-col gap-2">
+      {/* Subject Accent Bar */}
+      <div 
+        className="absolute top-0 left-0 w-full h-1.5" 
+        style={{ backgroundColor: subjectColor }}
+      />
+      
+      <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <span className={`text-xs font-black uppercase tracking-wider leading-tight ${schedule.isLocked ? 'text-amber-800' : 'text-surface-900'}`}>
+          <div className="flex flex-col gap-1.5">
+            <span className={`text-sm font-black uppercase tracking-tight leading-tight ${schedule.isLocked ? 'text-amber-900' : 'text-surface-900'}`}>
               {schedule.subject?.name}
             </span>
             {viewMode !== 'classroom' && (
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-brand-600">
+              <div className="flex items-center gap-1.5 text-[10px] font-black text-brand-600 bg-brand-50/50 px-2 py-0.5 rounded-lg w-fit">
                 <School size={10} strokeWidth={3} />
                 <span>{schedule.classroom?.gradeLevel}º {schedule.classroom?.line}</span>
               </div>
@@ -200,40 +254,44 @@ function DraggableSchedule({ schedule, onToggleLock, viewMode }: { schedule: Sch
           </div>
           
           <button 
-            onPointerDown={e => e.stopPropagation()} // Prevent drag when clicking lock
+            onPointerDown={e => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onToggleLock(schedule) }}
-            className={`p-1.5 rounded-lg transition-all ${
+            className={`p-2 rounded-xl transition-all ${
               schedule.isLocked 
-                ? 'text-amber-500 bg-amber-100/50 hover:bg-amber-100' 
+                ? 'text-amber-600 bg-amber-100/50 hover:bg-amber-200/50' 
                 : 'text-surface-300 bg-surface-50 hover:bg-brand-50 hover:text-brand-600'
             }`}
           >
-            {schedule.isLocked ? <Lock size={14} /> : <Unlock size={14} />}
+            {schedule.isLocked ? <Lock size={14} strokeWidth={3} /> : <Unlock size={14} strokeWidth={3} />}
           </button>
         </div>
       </div>
       
-      <div className="space-y-1.5 mt-4">
+      <div className="space-y-2 mt-4">
         {viewMode !== 'teacher' && (
-          <div className="flex items-center gap-2 text-[10px] font-bold text-surface-500 bg-surface-50 p-1.5 rounded-lg border border-surface-100/50">
-            <User size={10} className="shrink-0 text-surface-400" />
+          <div className="flex items-center gap-2.5 text-[10px] font-bold text-surface-600 bg-surface-50/50 p-2 rounded-xl border border-surface-100/50 backdrop-blur-sm group-hover:bg-white transition-colors">
+            <div className="w-5 h-5 rounded-lg bg-white flex items-center justify-center shadow-sm">
+              <User size={10} className="text-brand-500" />
+            </div>
             <span className="truncate">{schedule.teacher?.firstName} {schedule.teacher?.lastName}</span>
           </div>
         )}
         
         {viewMode !== 'room' && schedule.room && (
-          <div className="flex items-center gap-2 text-[10px] font-bold text-surface-400 px-1.5">
-            <MapPin size={10} className="shrink-0" />
-            <span className="truncate">{schedule.room.name}</span>
+          <div className="flex items-center gap-2.5 text-[10px] font-bold text-surface-400 px-2">
+            <MapPin size={12} className="shrink-0 text-surface-300" />
+            <span className="truncate uppercase tracking-wider">{schedule.room.name}</span>
           </div>
         )}
       </div>
-      
-      {/* Decorative tag for subject color if available */}
-      <div 
-        className="absolute top-4 left-0 w-1 h-6 rounded-r-full" 
-        style={{ backgroundColor: (schedule.subject as any)?.color || '#6366f1' }}
-      />
+
+      {/* Decorative Glow */}
+      {!schedule.isLocked && (
+        <div 
+          className="absolute -bottom-8 -right-8 w-16 h-16 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity"
+          style={{ backgroundColor: subjectColor }}
+        />
+      )}
     </motion.div>
   )
 }
@@ -246,10 +304,18 @@ function DroppableSlot({ id, children }: { id: string, children: React.ReactNode
   return (
     <div 
       ref={setNodeRef} 
-      className={`h-full w-full rounded-2xl transition-all duration-300 ${
-        isOver ? 'bg-brand-50 ring-2 ring-brand-400 ring-inset scale-[0.98]' : ''
+      className={`h-full w-full rounded-[2.5rem] transition-all duration-500 relative ${
+        isOver ? 'bg-brand-50/50 scale-[0.98]' : ''
       }`}
     >
+      {isOver && (
+        <motion.div 
+          layoutId="drop-indicator"
+          className="absolute inset-0 rounded-[2.5rem] ring-4 ring-brand-400/30 ring-inset z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        />
+      )}
       {children}
     </div>
   )

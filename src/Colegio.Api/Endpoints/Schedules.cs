@@ -154,9 +154,6 @@ public static class SchedulesEndpoints
 
             var result = await generator.GenerateAllAsync(sessionType);
             
-            db.Schedules.AddRange(result.Schedules);
-            await db.SaveChangesAsync();
-
             return Results.Ok(new { Count = result.Schedules.Count, result.Score, result.Warnings, result.Stats, Message = "Schedules generated for all classrooms" });
         }
         catch (Exception ex)

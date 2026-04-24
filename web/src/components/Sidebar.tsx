@@ -3,7 +3,6 @@ import {
   LayoutDashboard, 
   School, 
   Users, 
-  UserSquare2, 
   DoorOpen, 
   Receipt,
   Menu,

@@ -117,4 +117,34 @@ public class ScheduleGeneratorUnitTests : IClassFixture<ScheduleTestFixture>
         result.Success.Should().BeTrue("PreferredFreeDay ya no es una restricción excluyente y MaxSessionsPerDay=2 permite cubrir las 3 sesiones en 2 días");
         result.Schedules.Should().HaveCount(3);
     }
+
+    [Fact]
+    public async Task GenerateAllAsync_MultipleClassrooms_ShouldGenerateSchedulesForAll()
+    {
+        // Arrange
+        await _fixture.ResetDatabaseAsync();
+        _builder.WithStandardTimeSlots();
+        
+        var teacher = _builder.CreateTeacher("Maria", "Matematicas");
+        var subject = _builder.CreateSubject("Matematicas");
+        
+        var classroom1 = _builder.CreateClassroom(GradeLevel.Primary1, ClassroomLine.A);
+        var classroom2 = _builder.CreateClassroom(GradeLevel.Primary1, ClassroomLine.B);
+        
+        _builder.CreateClassUnit(classroom1.Id, subject.Id, teacher.Id, 2);
+        _builder.CreateClassUnit(classroom2.Id, subject.Id, teacher.Id, 2);
+        
+        await _builder.SaveAsync();
+
+        // Act
+        var result = await _sut.GenerateAllAsync(AcademicSessionType.Standard);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.Schedules.Should().HaveCount(4); // 2 classes * 2 sessions
+        
+        // Ensure no teacher double booking in the generated schedules
+        var schedules = result.Schedules;
+        schedules.GroupBy(s => s.TimeSlotId).Any(g => g.Count() > 1).Should().BeFalse("Un profesor no puede estar en dos sitios a la vez");
+    }
 }

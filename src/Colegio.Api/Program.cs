@@ -46,8 +46,9 @@ else
     await dbContext.Database.EnsureCreatedAsync();
 }
 
+var generator = scope.ServiceProvider.GetRequiredService<IScheduleGenerator>();
 bool forceSeed = args.Contains("--seed-force");
-await SeedData.SeedAsync(dbContext, forceSeed);
+await SeedData.SeedAsync(dbContext, generator, forceSeed);
 
 if (args.Contains("--seed-only"))
 {

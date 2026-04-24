@@ -1,11 +1,12 @@
 using Colegio.Domain.Entities;
+using Colegio.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Colegio.Infrastructure.Data;
 
 public static class SeedData
 {
-    public static async Task SeedAsync(ColegioDbContext context, bool force = false)
+    public static async Task SeedAsync(ColegioDbContext context, IScheduleGenerator? generator = null, bool force = false)
     {
         if (!force && await context.Schools.AnyAsync()) return;
 
@@ -33,9 +34,23 @@ public static class SeedData
         SeedConstraints(context);
         
         SeedClassUnits(context, classrooms, subjects, teachers);
-        SeedSchedules(context, classrooms, teachers, subjects, timeSlots);
-
+        
+        // We MUST save here so the generator can find the data in the DB
         await context.SaveChangesAsync();
+
+        if (generator != null)
+        {
+            // Generate for Standard session
+            await generator.GenerateAllAsync(AcademicSessionType.Standard);
+            // Generate for Intensive session
+            await generator.GenerateAllAsync(AcademicSessionType.Intensive);
+        }
+        else
+        {
+            // Fallback to minimal hardcoded seeding if no generator provided
+            SeedSchedules(context, classrooms, teachers, subjects, timeSlots);
+            await context.SaveChangesAsync();
+        }
     }
 
     private static School SeedSchools(ColegioDbContext context)
@@ -65,7 +80,7 @@ public static class SeedData
         var teachers = new List<Teacher>();
         var random = new Random(42);
 
-        for (int i = 0; i < 30; i++)
+        for (int i = 0; i < 45; i++)
         {
             var firstName = firstNames[i % firstNames.Length];
             var lastName = lastNames[i % lastNames.Length];
@@ -77,12 +92,12 @@ public static class SeedData
                 FirstName = firstName,
                 LastName = lastName,
                 Specialty = specialty,
-                Email = $"{firstName.ToLower().Replace("á", "a").Replace("é", "e").Replace("í", "i").Replace("ó", "o").Replace("ú", "u")}.{lastName.Split(' ')[0].ToLower()}@colegiocarmen.es",
+                Email = $"{firstName.ToLower().Replace("á", "a").Replace("é", "e").Replace("í", "i").Replace("ó", "o").Replace("ú", "u")}.{lastName.Split(' ')[0].ToLower()}{i}@colegiocarmen.es",
                 Phone = $"6{random.Next(10000000, 99999999)}",
                 IBAN = $"ES{random.Next(10, 99)} 2100 {random.Next(1000, 9999)} {random.Next(10, 99)} {random.Next(10000000, 99999999)}",
                 DateOfBirth = new DateTime(random.Next(1970, 1995), random.Next(1, 13), random.Next(1, 28)),
                 HireDate = new DateTime(random.Next(2010, 2023), 9, 1),
-                MaxWorkingHours = random.Next(15, 30)
+                MaxWorkingHours = random.Next(20, 35)
             });
         }
 
@@ -268,11 +283,19 @@ public static class SeedData
             }
             
             // Ensure Filosofía subjects have someone
-            if (i % 7 == 0) 
+            if (i % 5 == 0) 
             {
                 teacher.Subjects.Add(subjects["Filosofía"]);
                 teacher.Subjects.Add(subjects["Historia de la Filosofía"]);
                 teacher.Subjects.Add(subjects["Historia de España"]);
+            }
+            
+            // Add some generic subjects to many teachers to avoid bottlenecks
+            if (i % 3 == 0)
+            {
+                teacher.Subjects.Add(subjects["Tutoría"]);
+                teacher.Subjects.Add(subjects["Atención Educativa"]);
+                teacher.Subjects.Add(subjects["Materia Optativa"]);
             }
         }
     }
@@ -527,9 +550,9 @@ public static class SeedData
                     WeeklySessions = entry.WeeklyHours,
                     SessionDuration = 1,
                     AllowConsecutiveDays = true,
-                    PreferNonConsecutive = entry.WeeklyHours <= 3,
-                    AllowDoubleSession = entry.WeeklyHours >= 4,
-                    MaxSessionsPerDay = entry.WeeklyHours >= 6 ? 2 : 1,
+                    PreferNonConsecutive = false, // Relaxed
+                    AllowDoubleSession = true, // Relaxed
+                    MaxSessionsPerDay = entry.WeeklyHours >= 8 ? 3 : (entry.WeeklyHours >= 4 ? 2 : 1),
                     PreferredRoomId = subject.RequiredRoomId,
                     IsActive = true
                 });

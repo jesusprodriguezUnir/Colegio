@@ -1,3 +1,4 @@
+using Colegio.Domain.Services;
 using Colegio.Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -20,9 +21,9 @@ public static class MaintenanceEndpoints
         .WithName("GetDatabaseStats")
         .WithOpenApi();
 
-        group.MapPost("/reset", async (ColegioDbContext db) =>
+        group.MapPost("/reset", async (ColegioDbContext db, IScheduleGenerator generator) =>
         {
-            await SeedData.SeedAsync(db, force: true);
+            await SeedData.SeedAsync(db, generator, force: true);
             return Results.Ok(new { Message = "Base de datos reiniciada con éxito" });
         })
         .WithName("ResetDatabase")
