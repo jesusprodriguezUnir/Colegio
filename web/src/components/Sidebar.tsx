@@ -10,7 +10,9 @@ import {
   ChevronLeft,
   ShieldCheck,
   Calendar,
-  BookOpen
+  BookOpen,
+  Clock,
+  SquareUserRound
 } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -18,11 +20,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 const menuItems = [
   { path: '/', icon: LayoutDashboard, label: 'Panel Control' },
   { path: '/schools', icon: School, label: 'Colegios' },
-  { path: '/teachers', icon: UserSquare2, label: 'Profesores' },
+  { path: '/teachers', icon: SquareUserRound, label: 'Profesores' },
   { path: '/students', icon: Users, label: 'Alumnos' },
   { path: '/classrooms', icon: DoorOpen, label: 'Aulas' },
   { path: '/schedules', icon: Calendar, label: 'Horarios' },
   { path: '/classunits', icon: BookOpen, label: 'Unidades de Clase' },
+  { path: '/frameworks', icon: Clock, label: 'Marcos Temporales' },
   { path: '/invoices', icon: Receipt, label: 'Facturas' },
   { path: '/administration', icon: ShieldCheck, label: 'Administración' },
 ]
@@ -98,7 +101,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer / Account */}
-      <div className="p-4 border-top border-surface-100">
+      <div className="p-4 border-t border-surface-100">
         <div className={`p-3 rounded-xl hover:bg-surface-50 transition-colors flex items-center gap-3 cursor-pointer ${isCollapsed ? 'justify-center' : ''}`}>
            <div className="w-10 h-10 rounded-full bg-surface-200 shrink-0 overflow-hidden">
              <img src={`https://ui-avatars.com/api/?name=Admin&background=random`} alt="Admin" />

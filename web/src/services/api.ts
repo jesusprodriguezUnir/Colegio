@@ -89,3 +89,12 @@ export const classUnitsApi = {
   update: (id: string, data: any) => api.put(`/classunits/${id}`, data),
   delete: (id: string) => api.delete(`/classunits/${id}`),
 }
+
+export const timetableFrameworksApi = {
+  getAll: () => api.get('/frameworks'),
+  getById: (id: string) => api.get(`/frameworks/${id}`),
+  create: (data: any) => api.post('/frameworks', data),
+  update: (id: string, data: any) => api.put(`/frameworks/${id}`, data),
+  delete: (id: string) => api.delete(`/frameworks/${id}`),
+  generateSlots: (id: string) => api.post(`/frameworks/${id}/generate-slots`),
+}

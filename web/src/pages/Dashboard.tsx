@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { 
   Users, 
   School, 
-  UserSquare2, 
+  SquareUserRound, 
   TrendingUp, 
   ArrowUpRight, 
   Calendar,
@@ -87,7 +87,7 @@ export default function Dashboard() {
 
   const statCards = [
     { label: 'Alumnos Totales', value: stats.students, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', trend: '+12%' },
-    { label: 'Cuerpo Docente', value: stats.teachers, icon: UserSquare2, color: 'text-indigo-600', bg: 'bg-indigo-50', trend: '+5%' },
+    { label: 'Cuerpo Docente', value: stats.teachers, icon: SquareUserRound, color: 'text-indigo-600', bg: 'bg-indigo-50', trend: '+5%' },
     { label: 'Centros Activos', value: stats.schools, icon: School, color: 'text-purple-600', bg: 'bg-purple-50', trend: '0%' },
     { label: 'Ingresos (Mes)', value: `€${stats.revenue.toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+8.4%' },
   ]

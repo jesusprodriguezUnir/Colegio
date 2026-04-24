@@ -16,6 +16,9 @@ public class TimeSlot
     public bool IsBreak { get; set; }
     public string Label { get; set; } = string.Empty;
 
+    public Guid? TimetableFrameworkId { get; set; }
+    public TimetableFramework? Framework { get; set; }
+
     public ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
     public ICollection<TeacherAvailability> Availabilities { get; set; } = new List<TeacherAvailability>();
 }

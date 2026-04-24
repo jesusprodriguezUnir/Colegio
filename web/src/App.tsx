@@ -10,6 +10,7 @@ import Invoices from './pages/Invoices'
 import Administration from './pages/Administration'
 import Schedules from './pages/Schedules'
 import ClassUnits from './pages/ClassUnits'
+import TimetableFrameworks from './pages/TimetableFrameworks'
 import { AnimatePresence } from 'framer-motion'
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
               <Route path="/classrooms" element={<Classrooms />} />
               <Route path="/schedules" element={<Schedules />} />
               <Route path="/classunits" element={<ClassUnits />} />
+              <Route path="/frameworks" element={<TimetableFrameworks />} />
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/administration" element={<Administration />} />
             </Routes>

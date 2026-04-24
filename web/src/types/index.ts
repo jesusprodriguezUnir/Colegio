@@ -143,3 +143,24 @@ export interface ClassUnit {
   simultaneousGroupId: string | null
   isActive: boolean
 }
+
+export interface BreakDefinition {
+  id: string
+  timetableFrameworkId: string
+  startTime: string
+  endTime: string
+  label: string
+}
+
+export interface TimetableFramework {
+  id: string
+  name: string
+  sessionType: AcademicSessionType
+  hasAfternoon: boolean
+  morningStart: string
+  morningEnd: string
+  afternoonStart?: string
+  afternoonEnd?: string
+  sessionDurationMinutes: number
+  breaks: BreakDefinition[]
+}

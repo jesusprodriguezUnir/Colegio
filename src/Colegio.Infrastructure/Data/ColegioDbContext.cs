@@ -26,6 +26,8 @@ public class ColegioDbContext : DbContext
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<ScheduleConstraint> ScheduleConstraints => Set<ScheduleConstraint>();
     public DbSet<ClassUnit> ClassUnits => Set<ClassUnit>();
+    public DbSet<TimetableFramework> TimetableFrameworks => Set<TimetableFramework>();
+    public DbSet<BreakDefinition> BreakDefinitions => Set<BreakDefinition>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -130,6 +132,26 @@ public class ColegioDbContext : DbContext
         });
 
         modelBuilder.Entity<TimeSlot>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Label).HasMaxLength(100);
+            entity.HasOne(e => e.Framework)
+                .WithMany(f => f.GeneratedTimeSlots)
+                .HasForeignKey(e => e.TimetableFrameworkId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<TimetableFramework>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.HasMany(e => e.Breaks)
+                .WithOne(b => b.Framework)
+                .HasForeignKey(b => b.TimetableFrameworkId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<BreakDefinition>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Label).HasMaxLength(100);
