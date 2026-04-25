@@ -103,12 +103,9 @@ public static class SchedulesEndpoints
     {
         try
         {
-            // Remove existing non-locked schedules for this classroom and session type
             var toRemove = await db.Schedules
-                .Include(s => s.TimeSlot)
                 .Where(s => s.ClassroomId == classroomId && s.TimeSlot.SessionType == sessionType && !s.IsLocked)
                 .ToListAsync();
-            
             db.Schedules.RemoveRange(toRemove);
             await db.SaveChangesAsync();
 
@@ -128,7 +125,7 @@ public static class SchedulesEndpoints
                     .Where(s => s.ClassroomId == classroomId && s.TimeSlot.SessionType == sessionType)
                     .ToListAsync();
 
-                return Results.Ok(new { result.Score, result.Warnings, result.Stats, Schedules = finalResult });
+                return Results.Ok(new { score = result.Score, warnings = result.Warnings, stats = result.Stats, schedules = finalResult });
             }
             
             return Results.BadRequest(new { Error = "No se pudo generar el horario", result.Warnings, result.Stats });
@@ -143,12 +140,9 @@ public static class SchedulesEndpoints
     {
         try
         {
-            // Remove ALL existing non-locked schedules for this session type
             var toRemove = await db.Schedules
-                .Include(s => s.TimeSlot)
                 .Where(s => s.TimeSlot.SessionType == sessionType && !s.IsLocked)
                 .ToListAsync();
-            
             db.Schedules.RemoveRange(toRemove);
             await db.SaveChangesAsync();
 
@@ -170,6 +164,9 @@ public static class SchedulesEndpoints
 
     private static async Task<IResult> GetScheduleScore(IScheduleGenerator generator, AcademicSessionType sessionType)
     {
+        if (!Enum.IsDefined(typeof(AcademicSessionType), sessionType))
+            return Results.BadRequest(new { error = "sessionType inválido. Usar 0 (Standard) o 1 (Intensive)." });
+
         var result = await generator.CalculateScoreAsync(sessionType);
         return Results.Ok(result);
     }

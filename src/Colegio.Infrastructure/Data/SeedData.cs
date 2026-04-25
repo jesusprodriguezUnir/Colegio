@@ -108,7 +108,8 @@ public static class SeedData
     private static List<Classroom> SeedClassrooms(ColegioDbContext context, School school, List<Teacher> teachers)
     {
         var classrooms = new List<Classroom>();
-        var grades = Enum.GetValues<GradeLevel>();
+        var grades = new[] { GradeLevel.Primary1, GradeLevel.Primary2, GradeLevel.Primary3,
+                             GradeLevel.Primary4, GradeLevel.Primary5, GradeLevel.Primary6 };
         var lines = Enum.GetValues<ClassroomLine>();
         int teacherIndex = 0;
 
@@ -280,6 +281,10 @@ public static class SeedData
             {
                 teacher.Subjects.Add(subjects["Tutoría"]);
                 teacher.Subjects.Add(subjects["Religión"]);
+                teacher.Subjects.Add(subjects["Lengua Castellana y Literatura"]);
+                teacher.Subjects.Add(subjects["Matemáticas"]);
+                teacher.Subjects.Add(subjects["Música"]);
+                teacher.Subjects.Add(subjects["Biología y Geología"]);
             }
             
             // Ensure Filosofía subjects have someone
@@ -404,6 +409,24 @@ public static class SeedData
     {
         var curriculum = new List<Curriculum>();
 
+        // Primary 1
+        AddEntry(curriculum, GradeLevel.Primary1, subjects["Lengua Castellana y Literatura"], 7);
+        AddEntry(curriculum, GradeLevel.Primary1, subjects["Matemáticas"], 5);
+        AddEntry(curriculum, GradeLevel.Primary1, subjects["Biología y Geología"], 3);
+        AddEntry(curriculum, GradeLevel.Primary1, subjects["Educación Física"], 3);
+        AddEntry(curriculum, GradeLevel.Primary1, subjects["Música"], 2);
+        AddEntry(curriculum, GradeLevel.Primary1, subjects["Religión"], 2);
+        AddEntry(curriculum, GradeLevel.Primary1, subjects["Tutoría"], 1);
+
+        // Primary 2
+        AddEntry(curriculum, GradeLevel.Primary2, subjects["Lengua Castellana y Literatura"], 7);
+        AddEntry(curriculum, GradeLevel.Primary2, subjects["Matemáticas"], 5);
+        AddEntry(curriculum, GradeLevel.Primary2, subjects["Biología y Geología"], 3);
+        AddEntry(curriculum, GradeLevel.Primary2, subjects["Educación Física"], 3);
+        AddEntry(curriculum, GradeLevel.Primary2, subjects["Música"], 2);
+        AddEntry(curriculum, GradeLevel.Primary2, subjects["Religión"], 2);
+        AddEntry(curriculum, GradeLevel.Primary2, subjects["Tutoría"], 1);
+
         // Primary 3
         AddEntry(curriculum, GradeLevel.Primary3, subjects["Lengua Castellana y Literatura"], 8);
         AddEntry(curriculum, GradeLevel.Primary3, subjects["Matemáticas"], 6);
@@ -428,83 +451,6 @@ public static class SeedData
         AddEntry(curriculum, GradeLevel.Primary6, subjects["Educación Física"], 3);
         AddEntry(curriculum, GradeLevel.Primary6, subjects["Tutoría"], 1);
 
-        // ESO 1
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Lengua Castellana y Literatura"], 5);
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Matemáticas"], 4);
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Lengua Extranjera (Inglés)"], 3);
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Geografía e Historia"], 3);
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Educación Física"], 3);
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Biología y Geología"], 3);
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Ed. Plástica, Visual y Audiovisual"], 2);
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Música"], 2);
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Religión"], 2);
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Materia Optativa"], 2);
-        AddEntry(curriculum, GradeLevel.ESO1, subjects["Tutoría"], 1);
-
-        // ESO 2
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Lengua Castellana y Literatura"], 4);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Matemáticas"], 4);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Lengua Extranjera (Inglés)"], 3);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Geografía e Historia"], 3);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Educación Física"], 3);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Física y Química"], 3);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Tecnología y Digitalización"], 3);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Ed. Plástica, Visual y Audiovisual"], 2);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Ed. en Valores Cívicos y Éticos"], 1);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Religión"], 1);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Materia Optativa"], 2);
-        AddEntry(curriculum, GradeLevel.ESO2, subjects["Tutoría"], 1);
-
-        // ESO 3
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Lengua Castellana y Literatura"], 4);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Matemáticas"], 4);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Lengua Extranjera (Inglés)"], 3);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Geografía e Historia"], 3);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Educación Física"], 3);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Biología y Geología"], 2);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Física y Química"], 3);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Tecnología y Digitalización"], 2);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Música"], 2);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Religión"], 1);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Materia Optativa"], 2);
-        AddEntry(curriculum, GradeLevel.ESO3, subjects["Tutoría"], 1);
-
-        // ESO 4
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Lengua Castellana y Literatura"], 4);
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Matemáticas"], 4);
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Lengua Extranjera (Inglés)"], 3);
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Geografía e Historia"], 3);
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Educación Física"], 2);
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Religión"], 2);
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Materia Optativa"], 2);
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Tutoría"], 1);
-        // Materias de opción (ejemplos)
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Biología y Geología"], 3);
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Física y Química"], 3);
-        AddEntry(curriculum, GradeLevel.ESO4, subjects["Tecnología y Digitalización"], 3);
-
-        // Bachillerato 1
-        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Lengua Castellana y Literatura"], 4);
-        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Lengua Extranjera (Inglés)"], 3);
-        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Filosofía"], 3);
-        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Educación Física"], 2);
-        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Materia Optativa"], 3);
-        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Religión"], 1);
-        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Tutoría"], 1);
-        // Modalidad (ejemplos)
-        AddEntry(curriculum, GradeLevel.Bachillerato1, subjects["Matemáticas"], 4);
-
-        // Bachillerato 2
-        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Lengua Castellana y Literatura"], 4);
-        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Lengua Extranjera (Inglés)"], 3);
-        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Historia de España"], 3);
-        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Historia de la Filosofía"], 3);
-        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Materia Optativa"], 3);
-        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Religión"], 1);
-        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Tutoría"], 1);
-        // Modalidad (ejemplos)
-        AddEntry(curriculum, GradeLevel.Bachillerato2, subjects["Matemáticas"], 4);
-
         context.Curriculums.AddRange(curriculum);
     }
 
@@ -519,9 +465,9 @@ public static class SeedData
         var curriculums = context.Curriculums.Local.ToList();
         var random = new Random(42);
 
-        // Only generate for Primary and above (skip Infantil as per user decision)
+        // Only generate for Primary 1–6
         var eligibleClassrooms = classrooms
-            .Where(c => c.GradeLevel >= GradeLevel.Primary3)
+            .Where(c => c.GradeLevel >= GradeLevel.Primary1)
             .ToList();
 
         foreach (var classroom in eligibleClassrooms)

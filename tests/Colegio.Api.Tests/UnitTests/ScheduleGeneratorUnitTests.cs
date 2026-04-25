@@ -119,6 +119,145 @@ public class ScheduleGeneratorUnitTests : IClassFixture<ScheduleTestFixture>
     }
 
     [Fact]
+    public async Task GenerateAsync_TeacherConflict_ShouldNotDoubleBook()
+    {
+        await _fixture.ResetDatabaseAsync();
+
+        var slot = new TimeSlot
+        {
+            Id = Guid.NewGuid(),
+            SessionType = AcademicSessionType.Standard,
+            DayOfWeek = DayOfWeek.Monday,
+            StartTime = new TimeSpan(9, 0, 0),
+            EndTime = new TimeSpan(10, 0, 0)
+        };
+        _fixture.Context.TimeSlots.Add(slot);
+
+        var teacher = _builder.CreateTeacher("Unico", "Mates");
+        var subject = _builder.CreateSubject("Mates");
+        var classroom1 = _builder.CreateClassroom(GradeLevel.Primary1, ClassroomLine.A);
+        var classroom2 = _builder.CreateClassroom(GradeLevel.Primary1, ClassroomLine.B);
+
+        _builder.CreateClassUnit(classroom1.Id, subject.Id, teacher.Id, 1);
+        _builder.CreateClassUnit(classroom2.Id, subject.Id, teacher.Id, 1);
+        await _builder.SaveAsync();
+
+        var result1 = await _sut.GenerateAsync(classroom1.Id, AcademicSessionType.Standard);
+        result1.Success.Should().BeTrue();
+
+        if (result1.Success)
+        {
+            _fixture.Context.Schedules.AddRange(result1.Schedules);
+            await _fixture.Context.SaveChangesAsync();
+        }
+
+        var result2 = await _sut.GenerateAsync(classroom2.Id, AcademicSessionType.Standard);
+        result2.Success.Should().BeFalse("el único slot disponible ya está ocupado por el mismo profesor");
+    }
+
+    [Fact]
+    public async Task GenerateAsync_MaxSessionsPerDayRespected()
+    {
+        await _fixture.ResetDatabaseAsync();
+
+        var days = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+        foreach (var day in days)
+        {
+            _fixture.Context.TimeSlots.Add(new TimeSlot
+            {
+                Id = Guid.NewGuid(),
+                SessionType = AcademicSessionType.Standard,
+                DayOfWeek = day,
+                StartTime = new TimeSpan(9, 0, 0),
+                EndTime = new TimeSpan(10, 0, 0)
+            });
+        }
+
+        var teacher = _builder.CreateTeacher("Profe5", "Mates");
+        var subject = _builder.CreateSubject("Mates");
+        var classroom = _builder.CreateClassroom(GradeLevel.Primary1, ClassroomLine.A);
+        var unit = _builder.CreateClassUnit(classroom.Id, subject.Id, teacher.Id, 4);
+        unit.MaxSessionsPerDay = 1;
+        await _builder.SaveAsync();
+
+        var result = await _sut.GenerateAsync(classroom.Id, AcademicSessionType.Standard);
+
+        result.Success.Should().BeTrue();
+        result.Schedules.Should().HaveCount(4);
+        var slotIds = result.Schedules.Select(s => s.TimeSlotId).ToList();
+        var slots = _fixture.Context.TimeSlots.Where(ts => slotIds.Contains(ts.Id)).ToList();
+        slots.GroupBy(ts => ts.DayOfWeek).Should().OnlyContain(g => g.Count() == 1, "MaxSessionsPerDay=1");
+    }
+
+    [Fact]
+    public async Task GenerateAsync_AllSlotsOccupied_ShouldReturnFailure()
+    {
+        await _fixture.ResetDatabaseAsync();
+
+        var slot = new TimeSlot
+        {
+            Id = Guid.NewGuid(),
+            SessionType = AcademicSessionType.Standard,
+            DayOfWeek = DayOfWeek.Monday,
+            StartTime = new TimeSpan(9, 0, 0),
+            EndTime = new TimeSpan(10, 0, 0)
+        };
+        _fixture.Context.TimeSlots.Add(slot);
+
+        // Same teacher for both classrooms: slot pre-occupied by teacher in classroom1
+        // → classroom2 can't schedule the same teacher in the same slot
+        var teacher = _builder.CreateTeacher("Unico2", "Mates");
+        var subject = _builder.CreateSubject("Mates2");
+        var classroom1 = _builder.CreateClassroom(GradeLevel.Primary1, ClassroomLine.A);
+        var classroom2 = _builder.CreateClassroom(GradeLevel.Primary1, ClassroomLine.B);
+
+        _fixture.Context.Schedules.Add(new Schedule
+        {
+            Id = Guid.NewGuid(),
+            ClassroomId = classroom1.Id,
+            TeacherId = teacher.Id,
+            SubjectId = subject.Id,
+            TimeSlotId = slot.Id,
+            IsLocked = true
+        });
+
+        _builder.CreateClassUnit(classroom2.Id, subject.Id, teacher.Id, 1);
+        await _builder.SaveAsync();
+
+        var result = await _sut.GenerateAsync(classroom2.Id, AcademicSessionType.Standard);
+
+        result.Success.Should().BeFalse("el único slot disponible ya está ocupado por el mismo profesor");
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithUnavailableAvailability_ShouldNotAssignToUnavailableSlot()
+    {
+        await _fixture.ResetDatabaseAsync();
+
+        var slotA = new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Standard, DayOfWeek = DayOfWeek.Monday, StartTime = new TimeSpan(9, 0, 0), EndTime = new TimeSpan(10, 0, 0) };
+        var slotB = new TimeSlot { Id = Guid.NewGuid(), SessionType = AcademicSessionType.Standard, DayOfWeek = DayOfWeek.Tuesday, StartTime = new TimeSpan(9, 0, 0), EndTime = new TimeSpan(10, 0, 0) };
+        _fixture.Context.TimeSlots.AddRange(slotA, slotB);
+
+        var teacher = _builder.CreateTeacher("Avail", "Mates");
+        var subject = _builder.CreateSubject("Mates");
+        var classroom = _builder.CreateClassroom(GradeLevel.Primary1, ClassroomLine.A);
+
+        _fixture.Context.TeacherAvailabilities.AddRange(
+            new TeacherAvailability { Id = Guid.NewGuid(), TeacherId = teacher.Id, TimeSlotId = slotA.Id, IsAvailable = true, Level = AvailabilityLevel.Available },
+            new TeacherAvailability { Id = Guid.NewGuid(), TeacherId = teacher.Id, TimeSlotId = slotB.Id, IsAvailable = false, Level = AvailabilityLevel.Unavailable }
+        );
+
+        _builder.CreateClassUnit(classroom.Id, subject.Id, teacher.Id, 1);
+        await _builder.SaveAsync();
+
+        var result = await _sut.GenerateAsync(classroom.Id, AcademicSessionType.Standard);
+
+        result.Success.Should().BeTrue();
+        result.Schedules.Should().HaveCount(1);
+        result.Schedules[0].TimeSlotId.Should().Be(slotA.Id, "slotB está marcado como Unavailable");
+    }
+
+    [Fact]
     public async Task GenerateAllAsync_MultipleClassrooms_ShouldGenerateSchedulesForAll()
     {
         // Arrange

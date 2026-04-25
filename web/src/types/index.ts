@@ -72,6 +72,26 @@ export interface Invoice {
 export interface Subject {
   id: string
   name: string
+  color?: string
+}
+
+export interface ConflictInfo {
+  type: string
+  description: string
+  severity: 'Error' | 'Warning'
+  teacherId?: string
+  roomId?: string
+  timeSlotId?: string
+  classUnitId?: string
+}
+
+export interface ScheduleScore {
+  totalScore: number
+  teacherSatisfaction: number
+  compactnessScore: number
+  balanceScore: number
+  coverageScore: number
+  details: string[]
 }
 
 export interface Curriculum {

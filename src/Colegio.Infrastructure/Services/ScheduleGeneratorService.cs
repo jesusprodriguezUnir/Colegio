@@ -3,6 +3,7 @@ using Colegio.Domain.Services;
 using Colegio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Text.Json;
 using ValidationResult = Colegio.Domain.Services.ValidationResult;
 
 namespace Colegio.Infrastructure.Services;
@@ -109,7 +110,8 @@ public class ScheduleGeneratorService : IScheduleGenerator
     public async Task<GenerationResult> GenerateAllAsync(AcademicSessionType sessionType)
     {
         var sw = Stopwatch.StartNew();
-        var classrooms = await _context.Classrooms.ToListAsync();
+        _context.ChangeTracker.Clear();
+        var classrooms = await _context.Classrooms.AsNoTracking().ToListAsync();
         var allNewSchedules = new List<Schedule>();
         var warnings = new List<string>();
         int totalIterations = 0;
@@ -229,7 +231,7 @@ public class ScheduleGeneratorService : IScheduleGenerator
             }
 
             var availSlots = teacher.Availabilities
-                .Where(a => a.Level != AvailabilityLevel.Unavailable)
+                .Where(a => a.Level != AvailabilityLevel.Unavailable && timeSlots.Any(ts => ts.Id == a.TimeSlotId))
                 .Count();
 
             if (availSlots < cu.WeeklySessions)
@@ -247,7 +249,7 @@ public class ScheduleGeneratorService : IScheduleGenerator
         var schedules = await _context.Schedules
             .AsNoTracking()
             .Include(s => s.TimeSlot)
-            .Include(s => s.Teacher)
+            .Include(s => s.Teacher).ThenInclude(t => t!.Availabilities)
             .Where(s => s.TimeSlot.SessionType == sessionType)
             .ToListAsync();
 
@@ -318,13 +320,12 @@ public class ScheduleGeneratorService : IScheduleGenerator
 
             // Sort domains by teacher preference (Preferred (0) > Available (1) > Undesired (2))
             // with randomization to break ties and explore different solutions
-            var random = new Random();
             p.ValidTimeSlotIds = p.ValidTimeSlotIds
                 .OrderBy(slotId => {
                     var avail = teacher.Availabilities.FirstOrDefault(a => a.TimeSlotId == slotId);
                     return avail?.Level ?? AvailabilityLevel.Available;
                 })
-                .ThenBy(_ => random.Next())
+                .ThenBy(_ => Random.Shared.Next())
                 .ToList();
         }
     }
@@ -352,6 +353,16 @@ public class ScheduleGeneratorService : IScheduleGenerator
             Guid? roomId = current.PreferredRoomId ?? current.RequiredRoomId;
             if (roomId.HasValue && ctx.RoomBusySlots.TryGetValue(roomId.Value, out var roomBusy) && roomBusy.Contains(slotId)) continue;
 
+            // MaxDailyHours hard constraint
+            var maxHoursConstraint = constraints.FirstOrDefault(c => c.Type == ConstraintType.MaxDailyHours && c.IsActive);
+            if (maxHoursConstraint != null && current.TeacherId.HasValue)
+            {
+                var maxHours = JsonSerializer.Deserialize<Dictionary<string, int>>(maxHoursConstraint.Parameters!)!["MaxHours"];
+                int teacherSessToday = ctx.AllSchedules.Count(s => s.TeacherId == current.TeacherId.Value && ctx.SlotDetails[s.TimeSlotId].DayOfWeek == slot.DayOfWeek)
+                                     + ctx.Grid.Values.Count(s => s.TeacherId == current.TeacherId.Value && ctx.SlotDetails[s.TimeSlotId].DayOfWeek == slot.DayOfWeek);
+                if (teacherSessToday >= maxHours) continue;
+            }
+
             // MaxSessionsPerDay check (Optimized)
             var day = slot.DayOfWeek;
             int sessionsToday = ctx.AllSchedules.Count(s => s.ClassroomId == current.ClassroomId && s.SubjectId == current.SubjectId && ctx.SlotDetails[s.TimeSlotId].DayOfWeek == day)
@@ -378,10 +389,16 @@ public class ScheduleGeneratorService : IScheduleGenerator
                     .OrderBy(ts => ts.StartTime)
                     .ToList();
 
-                if (teacherSchedulesToday.Any())
+                if (teacherSchedulesToday.Any() && teacher.PreferCompactSchedule)
                 {
-                    // This is a bit complex for a middle-search check, but let's do a basic one:
-                    // If we are adding a session and there's a gap between the earliest and latest + this one, check it.
+                    var allSlotsToday = teacherSchedulesToday.Append(slot).OrderBy(ts => ts.StartTime).ToList();
+                    int gaps = 0;
+                    for (int gi = 0; gi < allSlotsToday.Count - 1; gi++)
+                    {
+                        if (allSlotsToday[gi + 1].StartTime - allSlotsToday[gi].EndTime > TimeSpan.FromMinutes(60))
+                            gaps++;
+                    }
+                    if (gaps > teacher.MaxGapsPerDay) continue;
                 }
             }
 
@@ -443,7 +460,7 @@ public class ScheduleGeneratorService : IScheduleGenerator
             if (avail != null && avail.Level == AvailabilityLevel.Preferred) preferred++;
         }
 
-        double score = (double)preferred / total * 100 + 70; // Base score + bonus for preferred
+        double score = (double)preferred / total * 100;
         return Math.Min(100, score);
     }
 
@@ -482,7 +499,13 @@ public class ScheduleGeneratorService : IScheduleGenerator
 
     private double CalculateBalance(List<Schedule> schedules, List<string> details)
     {
-        // Check if subjects are distributed across the week
-        return 85.0;
+        if (!schedules.Any()) return 0;
+
+        // Count how many (classroom, subject) pairs have >1 session on the same day
+        int concentrations = schedules
+            .GroupBy(s => new { s.ClassroomId, s.SubjectId })
+            .Sum(g => g.GroupBy(s => s.TimeSlot.DayOfWeek).Count(dayGroup => dayGroup.Count() > 1));
+
+        return Math.Max(0, 100 - concentrations * 10);
     }
 }

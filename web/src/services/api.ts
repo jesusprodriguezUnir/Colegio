@@ -73,6 +73,8 @@ export const schedulesApi = {
   getByRoom: (roomId: string) => api.get(`/schedules/room/${roomId}`),
   generate: (classroomId: string, sessionType: number) => api.post(`/schedules/generate?classroomId=${classroomId}&sessionType=${sessionType}`),
   generateAll: (sessionType: number) => api.post(`/schedules/generate-all?sessionType=${sessionType}`),
+  validate: (sessionType: number) => api.post(`/schedules/validate?sessionType=${sessionType}`),
+  getScore: (sessionType: number) => api.get(`/schedules/score?sessionType=${sessionType}`),
   update: (id: string, data: any) => api.put(`/schedules/${id}`, data),
 }
 
